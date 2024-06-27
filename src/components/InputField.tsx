@@ -1,3 +1,4 @@
+import dayjs from 'dayjs';
 import { Input } from './Input';
 import { Label } from './Label';
 
@@ -11,11 +12,11 @@ interface InputFieldProps<T> {
 
 const InputField = <T extends unknown>({ id, label, value, onChange, type = 'number' }: InputFieldProps<T>) => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = type === 'date' ? new Date(e.target.value) : Number(e.target.value);
+    const val = type === 'date' ? dayjs(e.target.value).toDate() : Number(e.target.value);
     onChange(val as T);
   };
 
-  const inputValue = type === 'date' ? (value as Date).toISOString().substr(0, 10) : (value as unknown as string | number);
+  const inputValue = type === 'date' ? dayjs(value as Date).format('YYYY-MM-DD') : (value as unknown as string | number);
 
   return (
     <div>

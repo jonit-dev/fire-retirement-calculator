@@ -1,12 +1,14 @@
 import { ArcElement, BarElement, CategoryScale, Chart as ChartJS, Legend, LinearScale, LineElement, PointElement, Title, Tooltip } from 'chart.js';
+import zoomPlugin from 'chartjs-plugin-zoom';
 import { useState } from 'react';
 import { BarChart, LineChart, PieChart } from './components/ChartComponent';
 import InputField from './components/InputField';
+import { Label } from './components/Label';
+import Switch from './components/Switch';
 import { CHART_COLORS } from './constants/ChartConstants';
 import { useRetirementCalculator } from './hooks/useRetirementCalculator';
 
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, ArcElement, BarElement);
-
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, ArcElement, BarElement, zoomPlugin);
 
 const RetirementCalculator = () => {
   const [initialNetWorth, setInitialNetWorth] = useState(900000);
@@ -22,6 +24,10 @@ const RetirementCalculator = () => {
   const [cryptoCAGR, setCryptoCAGR] = useState(35);
   const [bondCAGR, setBondCAGR] = useState(3);
   const [annualInflationRate, setAnnualInflationRate] = useState(2);
+  const [initialDate, setInitialDate] = useState(new Date(2024, 5, 26));
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [currentNetWorth, setCurrentNetWorth] = useState(900000);
+  const [isMonthly, setIsMonthly] = useState(false);
 
   const { projectionData, assetGrowth, allocationError } = useRetirementCalculator(
     initialNetWorth,
@@ -36,7 +42,11 @@ const RetirementCalculator = () => {
     reitCAGR,
     cryptoCAGR,
     bondCAGR,
-    annualInflationRate
+    annualInflationRate,
+    initialDate,
+    currentDate,
+    currentNetWorth,
+    isMonthly
   );
 
   const formatCurrency = (value: any) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);
@@ -73,6 +83,16 @@ const RetirementCalculator = () => {
         data: projectionData.map(d => d.bonds),
         borderColor: CHART_COLORS[3],
         backgroundColor: CHART_COLORS[3],
+      },
+      {
+        label: 'Current Progress',
+        data: projectionData.map(d => d.currentProgress || null),
+        borderColor: 'red',
+        backgroundColor: 'red',
+        pointRadius: projectionData.map(d => (d.currentProgress ? 6 : 0)),
+        pointHoverRadius: projectionData.map(d => (d.currentProgress ? 8 : 0)),
+        pointStyle: projectionData.map(d => (d.currentProgress ? 'circle' : 'circle')),
+        showLine: false,
       },
     ],
   };
@@ -114,6 +134,9 @@ const RetirementCalculator = () => {
         <InputField id="monthlyExpenses" label="Monthly Expenses ($)" value={monthlyExpenses} onChange={setMonthlyExpenses} />
         <InputField id="years" label="Projection Years" value={years} onChange={setYears} />
         <InputField id="annualInflationRate" label="Annual Inflation Rate (%)" value={annualInflationRate} onChange={setAnnualInflationRate} />
+        <InputField id="initialDate" label="Initial Date" value={initialDate} onChange={setInitialDate} type="date" />
+        <InputField id="currentDate" label="Current Date" value={currentDate} onChange={setCurrentDate} type="date" />
+        <InputField id="currentNetWorth" label="Current Net Worth ($)" value={currentNetWorth} onChange={setCurrentNetWorth} />
       </div>
 
       <div className="grid grid-cols-4 gap-4 mb-4">
@@ -128,6 +151,17 @@ const RetirementCalculator = () => {
         <InputField id="reitCAGR" label="REIT CAGR (%)" value={reitCAGR} onChange={setReitCAGR} />
         <InputField id="cryptoCAGR" label="Crypto CAGR (%)" value={cryptoCAGR} onChange={setCryptoCAGR} />
         <InputField id="bondCAGR" label="Bond CAGR (%)" value={bondCAGR} onChange={setBondCAGR} />
+      </div>
+
+      <div className="flex items-center space-x-2 mb-4">
+        <Switch
+          id="monthly-toggle"
+          checked={isMonthly}
+          onChange={setIsMonthly}
+        />
+        <Label htmlFor="monthly-toggle">
+          {isMonthly ? 'Monthly View' : 'Yearly View'}
+        </Label>
       </div>
 
       <div className="mb-8">
