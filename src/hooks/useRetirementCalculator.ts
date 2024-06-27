@@ -32,7 +32,10 @@ export const useRetirementCalculator = (
       setAllocationError('');
       calculateProjection();
     }
-  }, [initialNetWorth, monthlyContribution, monthlyExpenses, years, stockAllocation, reitAllocation, cryptoAllocation, bondAllocation, stockCAGR, reitCAGR, cryptoCAGR, bondCAGR, annualInflationRate, initialDate, currentDate, currentNetWorth, isMonthly]);
+  }, [
+    initialNetWorth, monthlyContribution, monthlyExpenses, years, stockAllocation, reitAllocation, cryptoAllocation, bondAllocation,
+    stockCAGR, reitCAGR, cryptoCAGR, bondCAGR, annualInflationRate, initialDate, currentDate, currentNetWorth, isMonthly
+  ]);
 
   const adjustForInflation = (value: number, months: number, annualInflationRate: number) => {
     return value / (1 + annualInflationRate / 100) ** (months / 12);
@@ -41,19 +44,25 @@ export const useRetirementCalculator = (
   const calculateProjection = () => {
     const monthlyInvestment = monthlyContribution - monthlyExpenses;
     const months = years * 12;
-    let projectedNetWorth = initialNetWorth;
     const data = [];
-    let stockValue = projectedNetWorth * stockAllocation / 100;
-    let reitValue = projectedNetWorth * reitAllocation / 100;
-    let cryptoValue = projectedNetWorth * cryptoAllocation / 100;
-    let bondValue = projectedNetWorth * bondAllocation / 100;
 
     const initialDateDayjs = dayjs(initialDate);
     const currentDateDayjs = dayjs(currentDate);
     const endDateDayjs = initialDateDayjs.add(months, 'month');
 
-    const totalMonths = endDateDayjs.diff(initialDateDayjs, 'month');
-    const currentProgressMonths = currentDateDayjs.diff(initialDateDayjs, 'month');
+    let totalMonths = endDateDayjs.diff(initialDateDayjs, 'month');
+    let currentProgressMonths = currentDateDayjs.diff(initialDateDayjs, 'month');
+
+    // Adjust total months if current date is beyond the end date
+    if (currentProgressMonths > totalMonths) {
+      totalMonths = currentProgressMonths;
+    }
+
+    let projectedNetWorth = initialNetWorth;
+    let stockValue = projectedNetWorth * stockAllocation / 100;
+    let reitValue = projectedNetWorth * reitAllocation / 100;
+    let cryptoValue = projectedNetWorth * cryptoAllocation / 100;
+    let bondValue = projectedNetWorth * bondAllocation / 100;
 
     for (let i = 0; i <= totalMonths; i++) {
       const date = initialDateDayjs.add(i, 'month');
@@ -80,6 +89,7 @@ export const useRetirementCalculator = (
 
         if (i === currentProgressMonths) {
           dataPoint.currentProgress = currentNetWorth;
+          dataPoint.netWorth = currentNetWorth; // Adjust net worth to current progress
         }
 
         data.push(dataPoint);
@@ -94,11 +104,21 @@ export const useRetirementCalculator = (
         data.splice(index, 0, {
           date: currentProgressDate,
           currentProgress: currentNetWorth,
+          netWorth: currentNetWorth,
+          stocks: stockValue,
+          reit: reitValue,
+          crypto: cryptoValue,
+          bonds: bondValue,
         });
       } else {
         data.push({
           date: currentProgressDate,
           currentProgress: currentNetWorth,
+          netWorth: currentNetWorth,
+          stocks: stockValue,
+          reit: reitValue,
+          crypto: cryptoValue,
+          bonds: bondValue,
         });
       }
     }

@@ -24,7 +24,7 @@ const RetirementCalculator = () => {
   const [cryptoCAGR, setCryptoCAGR] = useState(35);
   const [bondCAGR, setBondCAGR] = useState(3);
   const [annualInflationRate, setAnnualInflationRate] = useState(2);
-  const [initialDate, setInitialDate] = useState(new Date(2024, 5, 26));
+  const [initialDate, setInitialDate] = useState(new Date(2024, 5, 1));
   const [currentDate, setCurrentDate] = useState(new Date());
   const [currentNetWorth, setCurrentNetWorth] = useState(900000);
   const [isMonthly, setIsMonthly] = useState(false);
