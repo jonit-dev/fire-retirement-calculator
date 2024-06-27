@@ -3,8 +3,6 @@ import zoomPlugin from 'chartjs-plugin-zoom';
 import { useState } from 'react';
 import { BarChart, LineChart, PieChart } from './components/ChartComponent';
 import InputField from './components/InputField';
-import { Label } from './components/Label';
-import Switch from './components/Switch';
 import { CHART_COLORS } from './constants/ChartConstants';
 import { useRetirementCalculator } from './hooks/useRetirementCalculator';
 
@@ -27,8 +25,7 @@ const RetirementCalculator = () => {
   const [initialDate, setInitialDate] = useState(new Date(2024, 5, 1));
   const [currentDate, setCurrentDate] = useState(new Date());
   const [currentNetWorth, setCurrentNetWorth] = useState(900000);
-  const [isMonthly, setIsMonthly] = useState(false);
-
+ 
   const { projectionData, assetGrowth, allocationError } = useRetirementCalculator(
     initialNetWorth,
     monthlyContribution,
@@ -46,7 +43,7 @@ const RetirementCalculator = () => {
     initialDate,
     currentDate,
     currentNetWorth,
-    isMonthly
+    true
   );
 
   const formatCurrency = (value: any) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);
@@ -93,7 +90,9 @@ const RetirementCalculator = () => {
         pointHoverRadius: projectionData.map(d => (d.currentProgress ? 8 : 0)),
         pointStyle: projectionData.map(d => (d.currentProgress ? 'circle' : 'circle')),
         showLine: false,
-      },
+        order: -1,  
+        pointBackgroundColor: 'rgba(255, 99, 132, 0.5)',
+       },
     ],
   };
 
@@ -153,16 +152,7 @@ const RetirementCalculator = () => {
         <InputField id="bondCAGR" label="Bond CAGR (%)" value={bondCAGR} onChange={setBondCAGR} />
       </div>
 
-      <div className="flex items-center space-x-2 mb-4">
-        <Switch
-          id="monthly-toggle"
-          checked={isMonthly}
-          onChange={setIsMonthly}
-        />
-        <Label htmlFor="monthly-toggle">
-          {isMonthly ? 'Monthly View' : 'Yearly View'}
-        </Label>
-      </div>
+       
 
       <div className="mb-8">
         <h3 className="text-lg font-bold mb-2">Net Worth and Asset Growth Over Time</h3>
