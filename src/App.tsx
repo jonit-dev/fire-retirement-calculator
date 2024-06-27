@@ -1,16 +1,16 @@
 import { ArcElement, BarElement, CategoryScale, Chart as ChartJS, Legend, LinearScale, LineElement, PointElement, Title, Tooltip } from 'chart.js';
-import { useEffect, useState } from 'react';
-import { Bar, Line, Pie } from 'react-chartjs-2';
-import { Input } from './components/Input';
-import { Label } from './components/Label';
+import { useState } from 'react';
+import { BarChart, LineChart, PieChart } from './components/ChartComponent';
+import InputField from './components/InputField';
+import { CHART_COLORS } from './constants/ChartConstants';
+import { useRetirementCalculator } from './hooks/useRetirementCalculator';
 
 ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, ArcElement, BarElement);
 
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
 
 const RetirementCalculator = () => {
   const [initialNetWorth, setInitialNetWorth] = useState(900000);
-  const [monthlyIncome, setMonthlyIncome] = useState(18000);
+  const [monthlyContribution, setMonthlyContribution] = useState(17500);
   const [monthlyExpenses, setMonthlyExpenses] = useState(4500);
   const [years, setYears] = useState(10);
   const [stockAllocation, setStockAllocation] = useState(35);
@@ -19,64 +19,25 @@ const RetirementCalculator = () => {
   const [bondAllocation, setBondAllocation] = useState(20);
   const [stockCAGR, setStockCAGR] = useState(20);
   const [reitCAGR, setReitCAGR] = useState(8);
-  const [cryptoCAGR, setCryptoCAGR] = useState(40);
+  const [cryptoCAGR, setCryptoCAGR] = useState(35);
   const [bondCAGR, setBondCAGR] = useState(3);
-  const [projectionData, setProjectionData] = useState<any[]>([]);
-  const [assetGrowth, setAssetGrowth] = useState<any[]>([]);
-  const [allocationError, setAllocationError] = useState('');
+  const [annualInflationRate, setAnnualInflationRate] = useState(2);
 
-  useEffect(() => {
-    const totalAllocation = stockAllocation + reitAllocation + cryptoAllocation + bondAllocation;
-    if (totalAllocation !== 100) {
-      setAllocationError('Total asset allocation must equal 100%.');
-    } else {
-      setAllocationError('');
-      calculateProjection();
-    }
-  }, [initialNetWorth, monthlyIncome, monthlyExpenses, years, stockAllocation, reitAllocation, cryptoAllocation, bondAllocation, stockCAGR, reitCAGR, cryptoCAGR, bondCAGR]);
-
-  const calculateProjection = () => {
-    const monthlyInvestment = monthlyIncome - monthlyExpenses;
-    const months = years * 12;
-    let currentNetWorth = initialNetWorth;
-    const data = [];
-    let stockValue = currentNetWorth * stockAllocation / 100;
-    let reitValue = currentNetWorth * reitAllocation / 100;
-    let cryptoValue = currentNetWorth * cryptoAllocation / 100;
-    let bondValue = currentNetWorth * bondAllocation / 100;
-
-    for (let i = 0; i <= months; i++) {
-      const date = new Date(2024, 5, 26);
-      date.setMonth(date.getMonth() + i);
-
-      if (i > 0) {
-        stockValue = (stockValue + monthlyInvestment * stockAllocation / 100) * (1 + stockCAGR / 100 / 12);
-        reitValue = (reitValue + monthlyInvestment * reitAllocation / 100) * (1 + reitCAGR / 100 / 12);
-        cryptoValue = (cryptoValue + monthlyInvestment * cryptoAllocation / 100) * (1 + cryptoCAGR / 100 / 12);
-        bondValue = (bondValue + monthlyInvestment * bondAllocation / 100) * (1 + bondCAGR / 100 / 12);
-        currentNetWorth = stockValue + reitValue + cryptoValue + bondValue;
-      }
-
-      if (i % 12 === 0) {
-        data.push({
-          date: date.toISOString().split('T')[0],
-          netWorth: currentNetWorth,
-          stocks: stockValue,
-          reit: reitValue,
-          crypto: cryptoValue,
-          bonds: bondValue
-        });
-      }
-    }
-
-    setProjectionData(data);
-    setAssetGrowth([
-      { name: 'Stocks', value: stockValue },
-      { name: 'REIT', value: reitValue },
-      { name: 'Crypto', value: cryptoValue },
-      { name: 'Bonds', value: bondValue }
-    ]);
-  };
+  const { projectionData, assetGrowth, allocationError } = useRetirementCalculator(
+    initialNetWorth,
+    monthlyContribution,
+    monthlyExpenses,
+    years,
+    stockAllocation,
+    reitAllocation,
+    cryptoAllocation,
+    bondAllocation,
+    stockCAGR,
+    reitCAGR,
+    cryptoCAGR,
+    bondCAGR,
+    annualInflationRate
+  );
 
   const formatCurrency = (value: any) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);
 
@@ -92,26 +53,26 @@ const RetirementCalculator = () => {
       {
         label: 'Stocks',
         data: projectionData.map(d => d.stocks),
-        borderColor: COLORS[0],
-        backgroundColor: COLORS[0],
+        borderColor: CHART_COLORS[0],
+        backgroundColor: CHART_COLORS[0],
       },
       {
         label: 'REIT',
         data: projectionData.map(d => d.reit),
-        borderColor: COLORS[1],
-        backgroundColor: COLORS[1],
+        borderColor: CHART_COLORS[1],
+        backgroundColor: CHART_COLORS[1],
       },
       {
         label: 'Crypto',
         data: projectionData.map(d => d.crypto),
-        borderColor: COLORS[2],
-        backgroundColor: COLORS[2],
+        borderColor: CHART_COLORS[2],
+        backgroundColor: CHART_COLORS[2],
       },
       {
         label: 'Bonds',
         data: projectionData.map(d => d.bonds),
-        borderColor: COLORS[3],
-        backgroundColor: COLORS[3],
+        borderColor: CHART_COLORS[3],
+        backgroundColor: CHART_COLORS[3],
       },
     ],
   };
@@ -121,7 +82,7 @@ const RetirementCalculator = () => {
     datasets: [
       {
         data: assetGrowth.map(a => a.value),
-        backgroundColor: COLORS,
+        backgroundColor: CHART_COLORS,
       },
     ],
   };
@@ -132,7 +93,7 @@ const RetirementCalculator = () => {
       {
         label: 'Asset Value',
         data: assetGrowth.map(a => a.value),
-        backgroundColor: COLORS,
+        backgroundColor: CHART_COLORS,
       },
     ],
   };
@@ -148,81 +109,40 @@ const RetirementCalculator = () => {
         </div>
       )}
       <div className="grid grid-cols-2 gap-4 mb-4">
-        <div>
-          <Label htmlFor="initialNetWorth">Initial Net Worth ($)</Label>
-          <Input id="initialNetWorth" type="number" value={initialNetWorth} onChange={(e) => setInitialNetWorth(Number(e.target.value))} className="mt-1 p-2 border rounded bg-gray-700 text-white" />
-        </div>
-        <div>
-          <Label htmlFor="monthlyIncome">Monthly Income ($)</Label>
-          <Input id="monthlyIncome" type="number" value={monthlyIncome} onChange={(e) => setMonthlyIncome(Number(e.target.value))} className="mt-1 p-2 border rounded bg-gray-700 text-white" />
-        </div>
-        <div>
-          <Label htmlFor="monthlyExpenses">Monthly Expenses ($)</Label>
-          <Input id="monthlyExpenses" type="number" value={monthlyExpenses} onChange={(e) => setMonthlyExpenses(Number(e.target.value))} className="mt-1 p-2 border rounded bg-gray-700 text-white" />
-        </div>
-        <div>
-          <Label htmlFor="years">Projection Years</Label>
-          <Input id="years" type="number" value={years} onChange={(e) => setYears(Number(e.target.value))} className="mt-1 p-2 border rounded bg-gray-700 text-white" />
-        </div>
+        <InputField id="initialNetWorth" label="Initial Net Worth ($)" value={initialNetWorth} onChange={setInitialNetWorth} />
+        <InputField id="monthlyContribution" label="Monthly Contribution ($)" value={monthlyContribution} onChange={setMonthlyContribution} />
+        <InputField id="monthlyExpenses" label="Monthly Expenses ($)" value={monthlyExpenses} onChange={setMonthlyExpenses} />
+        <InputField id="years" label="Projection Years" value={years} onChange={setYears} />
+        <InputField id="annualInflationRate" label="Annual Inflation Rate (%)" value={annualInflationRate} onChange={setAnnualInflationRate} />
       </div>
 
       <div className="grid grid-cols-4 gap-4 mb-4">
-        <div>
-          <Label htmlFor="stockAllocation">Stock Allocation (%)</Label>
-          <Input id="stockAllocation" type="number" value={stockAllocation} onChange={(e) => setStockAllocation(Number(e.target.value))} className="mt-1 p-2 border rounded bg-gray-700 text-white" />
-        </div>
-        <div>
-          <Label htmlFor="reitAllocation">REIT Allocation (%)</Label>
-          <Input id="reitAllocation" type="number" value={reitAllocation} onChange={(e) => setReitAllocation(Number(e.target.value))} className="mt-1 p-2 border rounded bg-gray-700 text-white" />
-        </div>
-        <div>
-          <Label htmlFor="cryptoAllocation">Crypto Allocation (%)</Label>
-          <Input id="cryptoAllocation" type="number" value={cryptoAllocation} onChange={(e) => setCryptoAllocation(Number(e.target.value))} className="mt-1 p-2 border rounded bg-gray-700 text-white" />
-        </div>
-        <div>
-          <Label htmlFor="bondAllocation">Bond Allocation (%)</Label>
-          <Input id="bondAllocation" type="number" value={bondAllocation} onChange={(e) => setBondAllocation(Number(e.target.value))} className="mt-1 p-2 border rounded bg-gray-700 text-white" />
-        </div>
+        <InputField id="stockAllocation" label="Stock Allocation (%)" value={stockAllocation} onChange={setStockAllocation} />
+        <InputField id="reitAllocation" label="REIT Allocation (%)" value={reitAllocation} onChange={setReitAllocation} />
+        <InputField id="cryptoAllocation" label="Crypto Allocation (%)" value={cryptoAllocation} onChange={setCryptoAllocation} />
+        <InputField id="bondAllocation" label="Bond Allocation (%)" value={bondAllocation} onChange={setBondAllocation} />
       </div>
 
       <div className="grid grid-cols-4 gap-4 mb-4">
-        <div>
-          <Label htmlFor="stockCAGR">Stock CAGR (%)</Label>
-          <Input id="stockCAGR" type="number" value={stockCAGR} onChange={(e) => setStockCAGR(Number(e.target.value))} className="mt-1 p-2 border rounded bg-gray-700 text-white" />
-        </div>
-        <div>
-          <Label htmlFor="reitCAGR">REIT CAGR (%)</Label>
-          <Input id="reitCAGR" type="number" value={reitCAGR} onChange={(e) => setReitCAGR(Number(e.target.value))} className="mt-1 p-2 border rounded bg-gray-700 text-white" />
-        </div>
-        <div>
-          <Label htmlFor="cryptoCAGR">Crypto CAGR (%)</Label>
-          <Input id="cryptoCAGR" type="number" value={cryptoCAGR} onChange={(e) => setCryptoCAGR(Number(e.target.value))} className="mt-1 p-2 border rounded bg-gray-700 text-white" />
-        </div>
-        <div>
-          <Label htmlFor="bondCAGR">Bond CAGR (%)</Label>
-          <Input id="bondCAGR" type="number" value={bondCAGR} onChange={(e) => setBondCAGR(Number(e.target.value))} className="mt-1 p-2 border rounded bg-gray-700 text-white" />
-        </div>
+        <InputField id="stockCAGR" label="Stock CAGR (%)" value={stockCAGR} onChange={setStockCAGR} />
+        <InputField id="reitCAGR" label="REIT CAGR (%)" value={reitCAGR} onChange={setReitCAGR} />
+        <InputField id="cryptoCAGR" label="Crypto CAGR (%)" value={cryptoCAGR} onChange={setCryptoCAGR} />
+        <InputField id="bondCAGR" label="Bond CAGR (%)" value={bondCAGR} onChange={setBondCAGR} />
       </div>
 
       <div className="mb-8">
         <h3 className="text-lg font-bold mb-2">Net Worth and Asset Growth Over Time</h3>
-        <div className="relative h-64">
-          <Line data={lineChartData} options={{ responsive: true, maintainAspectRatio: false }} />
-        </div>
+        <LineChart data={lineChartData} />
       </div>
 
       <div className="grid grid-cols-2 gap-8">
         <div>
           <h3 className="text-lg font-bold mb-2">Final Asset Allocation</h3>
-          <div className="relative h-64">
-            <Pie data={pieChartData} options={{ responsive: true, maintainAspectRatio: false }} />
-          </div>
+          <PieChart data={pieChartData} />
         </div>
         <div>
           <h3 className="text-lg font-bold mb-2">Asset Growth Comparison</h3>
-          <div className="relative h-64">
-            <Bar data={barChartData} options={{ responsive: true, maintainAspectRatio: false }} />
-          </div>
+          <BarChart data={barChartData} />
         </div>
       </div>
 
