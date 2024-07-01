@@ -10,10 +10,12 @@ export const useRetirementCalculator = (
   reitAllocation: number,
   cryptoAllocation: number,
   bondAllocation: number,
+  realEstateAllocation: number,
   stockCAGR: number,
   reitCAGR: number,
   cryptoCAGR: number,
   bondCAGR: number,
+  realEstateCAGR: number,
   annualInflationRate: number,
   initialDate: Date,
   currentDate: Date,
@@ -25,7 +27,7 @@ export const useRetirementCalculator = (
   const [allocationError, setAllocationError] = useState('');
 
   useEffect(() => {
-    const totalAllocation = stockAllocation + reitAllocation + cryptoAllocation + bondAllocation;
+    const totalAllocation = stockAllocation + reitAllocation + cryptoAllocation + bondAllocation + realEstateAllocation;
     if (totalAllocation !== 100) {
       setAllocationError('Total asset allocation must equal 100%.');
     } else {
@@ -34,7 +36,8 @@ export const useRetirementCalculator = (
     }
   }, [
     initialNetWorth, monthlyContribution, years, stockAllocation, reitAllocation, cryptoAllocation, bondAllocation,
-    stockCAGR, reitCAGR, cryptoCAGR, bondCAGR, annualInflationRate, initialDate, currentDate, currentNetWorth, isMonthly
+    realEstateAllocation, stockCAGR, reitCAGR, cryptoCAGR, bondCAGR, realEstateCAGR, annualInflationRate, initialDate,
+    currentDate, currentNetWorth, isMonthly
   ]);
 
   const adjustForInflation = (value: number, months: number, annualInflationRate: number) => {
@@ -62,6 +65,7 @@ export const useRetirementCalculator = (
     let reitValue = projectedNetWorth * reitAllocation / 100;
     let cryptoValue = projectedNetWorth * cryptoAllocation / 100;
     let bondValue = projectedNetWorth * bondAllocation / 100;
+    let realEstateValue = projectedNetWorth * realEstateAllocation / 100;
 
     const inflationAdjustments = Array.from({ length: totalMonths + 1 }, (_, i) => adjustForInflation(1, i, annualInflationRate));
     
@@ -75,7 +79,8 @@ export const useRetirementCalculator = (
         reitValue = (reitValue + adjustedMonthlyInvestment * reitAllocation / 100) * (1 + reitCAGR / 100 / 12);
         cryptoValue = (cryptoValue + adjustedMonthlyInvestment * cryptoAllocation / 100) * (1 + cryptoCAGR / 100 / 12);
         bondValue = (bondValue + adjustedMonthlyInvestment * bondAllocation / 100) * (1 + bondCAGR / 100 / 12);
-        projectedNetWorth = stockValue + reitValue + cryptoValue + bondValue;
+        realEstateValue = (realEstateValue + adjustedMonthlyInvestment * realEstateAllocation / 100) * (1 + realEstateCAGR / 100 / 12);
+        projectedNetWorth = stockValue + reitValue + cryptoValue + bondValue + realEstateValue;
       }
 
       if (isMonthly || i % 12 === 0 || i === totalMonths) {
@@ -86,6 +91,7 @@ export const useRetirementCalculator = (
           reit: reitValue * inflationAdjustments[i],
           crypto: cryptoValue * inflationAdjustments[i],
           bonds: bondValue * inflationAdjustments[i],
+          realEstate: realEstateValue * inflationAdjustments[i],
         } as any;
 
         if (i === currentProgressMonths) {
@@ -107,6 +113,7 @@ export const useRetirementCalculator = (
         reit: reitValue,
         crypto: cryptoValue,
         bonds: bondValue,
+        realEstate: realEstateValue,
       };
 
       if (index !== -1) {
@@ -121,7 +128,8 @@ export const useRetirementCalculator = (
       { name: 'Stocks', value: stockValue * inflationAdjustments[totalMonths] },
       { name: 'REIT', value: reitValue * inflationAdjustments[totalMonths] },
       { name: 'Crypto', value: cryptoValue * inflationAdjustments[totalMonths] },
-      { name: 'Bonds', value: bondValue * inflationAdjustments[totalMonths] }
+      { name: 'Bonds', value: bondValue * inflationAdjustments[totalMonths] },
+      { name: 'Real Estate', value: realEstateValue * inflationAdjustments[totalMonths] }
     ]);
   };
 
