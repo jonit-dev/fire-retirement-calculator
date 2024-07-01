@@ -89,7 +89,6 @@ export const useRetirementCalculator = (
 
         if (i === currentProgressMonths) {
           dataPoint.currentProgress = currentNetWorth;
-          dataPoint.netWorth = currentNetWorth; // Adjust net worth to current progress
         }
 
         data.push(dataPoint);
@@ -104,7 +103,7 @@ export const useRetirementCalculator = (
         data.splice(index, 0, {
           date: currentProgressDate,
           currentProgress: currentNetWorth,
-          netWorth: currentNetWorth,
+          netWorth: null,
           stocks: stockValue,
           reit: reitValue,
           crypto: cryptoValue,
@@ -114,7 +113,7 @@ export const useRetirementCalculator = (
         data.push({
           date: currentProgressDate,
           currentProgress: currentNetWorth,
-          netWorth: currentNetWorth,
+          netWorth: null,
           stocks: stockValue,
           reit: reitValue,
           crypto: cryptoValue,

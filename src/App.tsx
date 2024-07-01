@@ -21,7 +21,7 @@ const RetirementCalculator = () => {
   const [reitCAGR, setReitCAGR] = useState(8);
   const [cryptoCAGR, setCryptoCAGR] = useState(35);
   const [bondCAGR, setBondCAGR] = useState(3);
-  const [annualInflationRate, setAnnualInflationRate] = useState(2);
+  const [annualInflationRate, setAnnualInflationRate] = useState(3);
   const [initialDate, setInitialDate] = useState(new Date(2024, 5, 1));
   const [currentDate, setCurrentDate] = useState(new Date());
   const [currentNetWorth, setCurrentNetWorth] = useState(900000);
@@ -56,6 +56,7 @@ const RetirementCalculator = () => {
         data: projectionData.map(d => d.netWorth),
         borderColor: '#8884d8',
         backgroundColor: '#8884d8',
+        hidden: false
       },
       {
         label: 'Stocks',
@@ -90,9 +91,9 @@ const RetirementCalculator = () => {
         pointHoverRadius: projectionData.map(d => (d.currentProgress ? 8 : 0)),
         pointStyle: projectionData.map(d => (d.currentProgress ? 'circle' : 'circle')),
         showLine: false,
-        order: -1,  
+        order: -1,
         pointBackgroundColor: 'rgba(255, 99, 132, 0.5)',
-       },
+      },
     ],
   };
 
