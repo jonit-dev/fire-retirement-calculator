@@ -28,7 +28,7 @@ const InputField = <T extends unknown>({ id, label, value, onChange, type = 'num
         type={type}
         value={inputValue}
         onChange={handleChange}
-        className="mt-1 p-2 border rounded bg-gray-700 text-white"
+        className="mt-2 mr-4 p-2 mb-4 border rounded bg-gray-700 text-white"
       />
     </div>
   );

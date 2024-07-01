@@ -21,7 +21,8 @@ export const useRetirementCalculator = (
   currentNetWorth: number,
   isMonthly: boolean,
   annualExpenses: number,
-  withdrawalRate: number
+  withdrawalRate: number,
+  includeWithdrawals: boolean
 ) => {
   const [projectionData, setProjectionData] = useState<any[]>([]);
   const [assetGrowth, setAssetGrowth] = useState<any[]>([]);
@@ -39,7 +40,7 @@ export const useRetirementCalculator = (
   }, [
     initialNetWorth, monthlyContribution, years, stockAllocation, reitAllocation, cryptoAllocation, bondAllocation,
     realEstateAllocation, stockCAGR, reitCAGR, cryptoCAGR, bondCAGR, realEstateCAGR, annualInflationRate, initialDate,
-    currentDate, currentNetWorth, isMonthly, annualExpenses, withdrawalRate
+    currentDate, currentNetWorth, isMonthly, annualExpenses, withdrawalRate, includeWithdrawals
   ]);
 
   const adjustForInflation = (value: number, months: number, annualInflationRate: number) => {
@@ -68,9 +69,9 @@ export const useRetirementCalculator = (
     let cryptoValue = projectedNetWorth * cryptoAllocation / 100;
     let bondValue = projectedNetWorth * bondAllocation / 100;
     let realEstateValue = projectedNetWorth * realEstateAllocation / 100;
-  
     const fireTarget = annualExpenses / (withdrawalRate / 100);
     let fireDateFound = false;
+    let isRetired = false;
   
     const inflationAdjustments = Array.from({ length: totalMonths + 1 }, (_, i) => adjustForInflation(1, i, annualInflationRate));
   
@@ -78,7 +79,7 @@ export const useRetirementCalculator = (
       const date = initialDateDayjs.add(i, 'month');
   
       if (i > 0) {
-        const adjustedMonthlyInvestment = monthlyInvestment * inflationAdjustments[i];
+        const adjustedMonthlyInvestment = isRetired ? 0 : monthlyInvestment * inflationAdjustments[i];
   
         stockValue = (stockValue + adjustedMonthlyInvestment * stockAllocation / 100) * (1 + stockCAGR / 100 / 12);
         reitValue = (reitValue + adjustedMonthlyInvestment * reitAllocation / 100) * (1 + reitCAGR / 100 / 12);
@@ -86,6 +87,26 @@ export const useRetirementCalculator = (
         bondValue = (bondValue + adjustedMonthlyInvestment * bondAllocation / 100) * (1 + bondCAGR / 100 / 12);
         realEstateValue = (realEstateValue + adjustedMonthlyInvestment * realEstateAllocation / 100) * (1 + realEstateCAGR / 100 / 12);
         projectedNetWorth = stockValue + reitValue + cryptoValue + bondValue + realEstateValue;
+
+        if (isRetired && includeWithdrawals) {
+          const monthlyWithdrawal = (annualExpenses / 12) * inflationAdjustments[i];
+          const totalWithdrawal = monthlyWithdrawal;
+          
+          // Withdraw proportionally from each asset class
+          const stockWithdrawal = totalWithdrawal * (stockValue / projectedNetWorth);
+          const reitWithdrawal = totalWithdrawal * (reitValue / projectedNetWorth);
+          const cryptoWithdrawal = totalWithdrawal * (cryptoValue / projectedNetWorth);
+          const bondWithdrawal = totalWithdrawal * (bondValue / projectedNetWorth);
+          const realEstateWithdrawal = totalWithdrawal * (realEstateValue / projectedNetWorth);
+
+          stockValue -= stockWithdrawal;
+          reitValue -= reitWithdrawal;
+          cryptoValue -= cryptoWithdrawal;
+          bondValue -= bondWithdrawal;
+          realEstateValue -= realEstateWithdrawal;
+
+          projectedNetWorth -= totalWithdrawal;
+        }
       }
   
       if (isMonthly || i % 12 === 0 || i === totalMonths) {
@@ -109,6 +130,7 @@ export const useRetirementCalculator = (
         if (!fireDateFound && projectedNetWorth * inflationAdjustments[i] >= fireTarget) {
           setFireDate(date.toDate());
           fireDateFound = true;
+          isRetired = includeWithdrawals;
         }
       }
     }
