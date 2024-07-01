@@ -168,24 +168,35 @@ const RetirementCalculator = () => {
       },
       annotation: {
         annotations: fireDate ? {
+          fireLabel: {
+            type: 'label',
+            xValue: dayjs(fireDate).format('YYYY-MM-DD'),
+            backgroundColor: 'rgba(245, 245, 245, 0.1)',
+            content: 'Retirement Date',
+            font: {
+              size: 10
+            },
+            color: 'yellow',
+          },
           fireLine: {
             type: 'line',
             xMin: dayjs(fireDate).format('YYYY-MM-DD'),
             xMax: dayjs(fireDate).format('YYYY-MM-DD'),
             borderColor: 'yellow',
             borderWidth: 2,
-            label: {
-              content: 'FIRE Date',
-              enabled: true,
-              position: 'top'
-            }
+            borderDash: [5, 5],
+
           }
         } : {}
-      }
+      },
+
     },
   };
-  
-  
+
+
+
+
+
 
   const pieChartData = {
     labels: assetGrowth.map((a) => a.name),
