@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/fire-retirement-calculator/static/css/main.4918dce3.css",
+    "main.js": "/fire-retirement-calculator/static/js/main.df025584.js",
+    "static/js/453.4ac6f93d.chunk.js": "/fire-retirement-calculator/static/js/453.4ac6f93d.chunk.js",
+    "index.html": "/fire-retirement-calculator/index.html",
+    "main.4918dce3.css.map": "/fire-retirement-calculator/static/css/main.4918dce3.css.map",
+    "main.df025584.js.map": "/fire-retirement-calculator/static/js/main.df025584.js.map",
+    "453.4ac6f93d.chunk.js.map": "/fire-retirement-calculator/static/js/453.4ac6f93d.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.4918dce3.css",
+    "static/js/main.df025584.js"
+  ]
+}
