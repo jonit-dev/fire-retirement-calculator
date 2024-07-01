@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 import { Chart, ChartOptions } from 'chart.js';
 import zoomPlugin from 'chartjs-plugin-zoom';
 import { debounce } from 'lodash';
@@ -9,34 +8,32 @@ Chart.register(zoomPlugin);
 
 interface LineChartProps {
   data: any;
+  options?: ChartOptions<'line'>;
 }
 
-export const LineChart: React.FC<LineChartProps> = ({ data }) => {
+export const LineChart: React.FC<LineChartProps> = ({ data, options }) => {
   const chartRef = useRef<Chart<'line'>>(null);
   const [isZoomed, setIsZoomed] = useState(false);
 
- useEffect(() => {
-  const chart = chartRef.current;
+  useEffect(() => {
+    const chart = chartRef.current;
 
-  const handleDoubleClick = () => {
-    // Ensure the chart instance is still valid and mounted
+    const handleDoubleClick = () => {
+      if (chart && chart.canvas && document.body.contains(chart.canvas)) {
+        chart.resetZoom();
+      }
+    };
+
     if (chart && chart.canvas && document.body.contains(chart.canvas)) {
-      chart.resetZoom();
+      chart.canvas.addEventListener('dblclick', handleDoubleClick);
     }
-  };
 
-  // Add event listener if the canvas is available and part of the document
-  if (chart && chart.canvas && document.body.contains(chart.canvas)) {
-    chart.canvas.addEventListener('dblclick', handleDoubleClick);
-  }
-
-  // Cleanup function to safely remove the event listener
-  return () => {
-    if (chart && chart.canvas) {
-      chart.canvas.removeEventListener('dblclick', handleDoubleClick);
-    }
-  };
-}, [chartRef.current]); // Depend on chartRef.current to re-run effect when it changes
+    return () => {
+      if (chart && chart.canvas) {
+        chart.canvas.removeEventListener('dblclick', handleDoubleClick);
+      }
+    };
+  }, [chartRef.current]);
 
   const handleZoom = debounce(({ chart }) => {
     if (!isZoomed) {
@@ -51,7 +48,7 @@ export const LineChart: React.FC<LineChartProps> = ({ data }) => {
     }
   }, 200);
 
-  const options: ChartOptions<'line'> = {
+  const defaultOptions: ChartOptions<'line'> = {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
@@ -84,11 +81,11 @@ export const LineChart: React.FC<LineChartProps> = ({ data }) => {
 
   return (
     <div className="relative h-64">
-      <Line ref={chartRef} data={data} options={options} />
+      <Line ref={chartRef} data={data} options={{ ...defaultOptions, ...options }} />
     </div>
   );
 };
- 
+
 export const PieChart = ({ data }: Record<string, any>) => (
   <div className="relative h-64">
     <Pie data={data} options={{ responsive: true, maintainAspectRatio: false }} />

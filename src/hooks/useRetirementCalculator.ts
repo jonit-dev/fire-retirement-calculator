@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 import dayjs from 'dayjs';
 import { useEffect, useState } from 'react';
 
@@ -20,11 +19,13 @@ export const useRetirementCalculator = (
   initialDate: Date,
   currentDate: Date,
   currentNetWorth: number,
-  isMonthly: boolean
+  isMonthly: boolean,
+  annualExpenses: number
 ) => {
   const [projectionData, setProjectionData] = useState<any[]>([]);
   const [assetGrowth, setAssetGrowth] = useState<any[]>([]);
   const [allocationError, setAllocationError] = useState('');
+  const [fireDate, setFireDate] = useState<Date | null>(null);
 
   useEffect(() => {
     const totalAllocation = stockAllocation + reitAllocation + cryptoAllocation + bondAllocation + realEstateAllocation;
@@ -37,7 +38,7 @@ export const useRetirementCalculator = (
   }, [
     initialNetWorth, monthlyContribution, years, stockAllocation, reitAllocation, cryptoAllocation, bondAllocation,
     realEstateAllocation, stockCAGR, reitCAGR, cryptoCAGR, bondCAGR, realEstateCAGR, annualInflationRate, initialDate,
-    currentDate, currentNetWorth, isMonthly
+    currentDate, currentNetWorth, isMonthly, annualExpenses
   ]);
 
   const adjustForInflation = (value: number, months: number, annualInflationRate: number) => {
@@ -66,6 +67,9 @@ export const useRetirementCalculator = (
     let cryptoValue = projectedNetWorth * cryptoAllocation / 100;
     let bondValue = projectedNetWorth * bondAllocation / 100;
     let realEstateValue = projectedNetWorth * realEstateAllocation / 100;
+
+    const fireTarget = annualExpenses / 0.04;
+    let fireDateFound = false;
 
     const inflationAdjustments = Array.from({ length: totalMonths + 1 }, (_, i) => adjustForInflation(1, i, annualInflationRate));
     
@@ -99,6 +103,12 @@ export const useRetirementCalculator = (
         }
 
         data.push(dataPoint);
+
+        // Determine FIRE date
+        if (!fireDateFound && projectedNetWorth >= fireTarget) {
+          setFireDate(date.toDate());
+          fireDateFound = true;
+        }
       }
     }
 
@@ -133,5 +143,5 @@ export const useRetirementCalculator = (
     ]);
   };
 
-  return { projectionData, assetGrowth, allocationError };
+  return { projectionData, assetGrowth, allocationError, fireDate };
 };

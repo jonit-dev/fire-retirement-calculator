@@ -10,14 +10,16 @@ import {
   Title,
   Tooltip,
 } from 'chart.js';
+import annotationPlugin from 'chartjs-plugin-annotation';
 import zoomPlugin from 'chartjs-plugin-zoom';
+import dayjs from 'dayjs';
 import { BarChart, LineChart, PieChart } from './components/ChartComponent';
 import InputField from './components/InputField';
 import { CHART_COLORS } from './constants/ChartConstants';
 import useLocalStorage from './hooks/useLocalStorage';
 import { useRetirementCalculator } from './hooks/useRetirementCalculator';
 
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, ArcElement, BarElement, zoomPlugin);
+ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, Tooltip, Legend, ArcElement, BarElement, zoomPlugin, annotationPlugin);
 
 const RetirementCalculator = () => {
   const [initialNetWorth, setInitialNetWorth] = useLocalStorage<number>('initialNetWorth', 1000);
@@ -37,8 +39,9 @@ const RetirementCalculator = () => {
   const [initialDate, setInitialDate] = useLocalStorage<Date>('initialDate', new Date());
   const [currentDate, setCurrentDate] = useLocalStorage<Date>('currentDate', new Date());
   const [currentNetWorth, setCurrentNetWorth] = useLocalStorage<number>('currentNetWorth', 1000);
+  const [annualExpenses, setAnnualExpenses] = useLocalStorage<number>('annualExpenses', 40000);
 
-  const { projectionData, assetGrowth, allocationError } = useRetirementCalculator(
+  const { projectionData, assetGrowth, allocationError, fireDate } = useRetirementCalculator(
     initialNetWorth,
     monthlyContribution,
     years,
@@ -56,7 +59,8 @@ const RetirementCalculator = () => {
     initialDate,
     currentDate,
     currentNetWorth,
-    true
+    true,
+    annualExpenses
   );
 
   const formatCurrency = (value: any) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);
@@ -114,7 +118,74 @@ const RetirementCalculator = () => {
         pointBackgroundColor: 'rgba(255, 99, 132, 0.5)',
       },
     ],
+    options: {
+      plugins: {
+        annotation: {
+          annotations: fireDate ? {
+            line1: {
+              type: 'line',
+              xMin: fireDate,
+              xMax: fireDate,
+              borderColor: 'yellow',
+              borderWidth: 2,
+              label: {
+                content: 'FIRE Date',
+                enabled: true,
+                position: 'top'
+              }
+            }
+          } : {}
+        }
+      }
+    }
   };
+
+  const lineChartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      zoom: {
+        pan: {
+          enabled: true,
+          mode: 'x',
+          modifierKey: 'shift',
+        },
+        zoom: {
+          wheel: {
+            enabled: true,
+          },
+          pinch: {
+            enabled: true,
+          },
+          drag: {
+            enabled: true,
+            backgroundColor: 'rgba(0, 0, 0, 0.1)',
+            borderColor: 'rgba(0, 0, 0, 0.5)',
+            borderWidth: 1,
+          },
+          mode: 'x',
+        },
+      },
+      annotation: {
+        annotations: fireDate ? {
+          fireLine: {
+            type: 'line',
+            xMin: dayjs(fireDate).format('YYYY-MM-DD'),
+            xMax: dayjs(fireDate).format('YYYY-MM-DD'),
+            borderColor: 'yellow',
+            borderWidth: 2,
+            label: {
+              content: 'FIRE Date',
+              enabled: true,
+              position: 'top'
+            }
+          }
+        } : {}
+      }
+    },
+  };
+  
+  
 
   const pieChartData = {
     labels: assetGrowth.map((a) => a.name),
@@ -147,182 +218,182 @@ const RetirementCalculator = () => {
           {allocationError}
         </div>
       )}
-     
-     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-  <div className="col-span-1">
-    <InputField
-      id="initialNetWorth"
-      label="Initial Net Worth ($)"
-      value={initialNetWorth}
-      onChange={setInitialNetWorth}
-      tooltip="Initial amount of money you have for retirement."
-    />
-  </div>
-  <div className="col-span-1">
-    <InputField
-      id="monthlyContribution"
-      label="Monthly Contribution ($)"
-      value={monthlyContribution}
-      onChange={setMonthlyContribution}
-      tooltip="Amount you contribute monthly towards retirement."
-    />
-  </div>
-  <div className="col-span-1">
-    <InputField
-      id="years"
-      label="Total Projection Years"
-      value={years}
-      onChange={setYears}
-      tooltip="Number of years you plan to keep contributing."
-    />
-  </div>
-  <div className="col-span-1">
-    <InputField
-      id="annualInflationRate"
-      label="Annual Inflation Rate (%)"
-      value={annualInflationRate}
-      onChange={setAnnualInflationRate}
-      tooltip="Expected annual inflation rate, typically around 2-3% in the US."
-    />
-  </div>
-  <div className="col-span-1">
-    <InputField
-      id="initialDate"
-      label="Initial Date"
-      value={initialDate}
-      onChange={setInitialDate}
-      type="date"
-      tooltip="The start date for the projection."
-    />
-  </div>
-  <div className="col-span-1">
-    <InputField
-      id="currentDate"
-      label="Current Date"
-      value={currentDate}
-      onChange={setCurrentDate}
-      type="date"
-      tooltip="The current date for the projection."
-    />
-  </div>
-  <div className="col-span-1">
-    <InputField
-      id="currentNetWorth"
-      label="Current Net Worth ($)"
-      value={currentNetWorth}
-      onChange={setCurrentNetWorth}
-      tooltip="Your current net worth."
-    />
-  </div>
-</div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+        <div className="col-span-1">
+          <InputField
+            id="initialNetWorth"
+            label="Initial Net Worth ($)"
+            value={initialNetWorth}
+            onChange={setInitialNetWorth}
+            tooltip="Initial amount of money you have for retirement."
+          />
+        </div>
+        <div className="col-span-1">
+          <InputField
+            id="monthlyContribution"
+            label="Monthly Contribution ($)"
+            value={monthlyContribution}
+            onChange={setMonthlyContribution}
+            tooltip="Amount you contribute monthly towards retirement."
+          />
+        </div>
+        <div className="col-span-1">
+          <InputField
+            id="years"
+            label="Total Projection Years"
+            value={years}
+            onChange={setYears}
+            tooltip="Number of years you plan to keep contributing."
+          />
+        </div>
+        <div className="col-span-1">
+          <InputField
+            id="annualInflationRate"
+            label="Annual Inflation Rate (%)"
+            value={annualInflationRate}
+            onChange={setAnnualInflationRate}
+            tooltip="Expected annual inflation rate, typically around 2-3% in the US."
+          />
+        </div>
+        <div className="col-span-1">
+          <InputField
+            id="initialDate"
+            label="Initial Date"
+            value={initialDate}
+            onChange={setInitialDate}
+            type="date"
+            tooltip="The start date for the projection."
+          />
+        </div>
+        <div className="col-span-1">
+          <InputField
+            id="currentDate"
+            label="Current Date"
+            value={currentDate}
+            onChange={setCurrentDate}
+            type="date"
+            tooltip="The current date for the projection."
+          />
+        </div>
+        <div className="col-span-1">
+          <InputField
+            id="currentNetWorth"
+            label="Current Net Worth ($)"
+            value={currentNetWorth}
+            onChange={setCurrentNetWorth}
+            tooltip="Your current net worth."
+          />
+        </div>
+        <div className="col-span-1">
+          <InputField
+            id="annualExpenses"
+            label="Annual Expenses ($)"
+            value={annualExpenses}
+            onChange={setAnnualExpenses}
+            tooltip="Your estimated annual expenses in retirement."
+          />
+        </div>
+      </div>
 
-<div className="grid grid-cols-1 sm:grid-cols-5 gap-4 mb-4">
-  <div className="col-span-1">
-    <InputField
-      id="stockAllocation"
-      label="Stock Allocation (%)"
-      value={stockAllocation}
-      onChange={setStockAllocation}
-      tooltip="Percentage of your net worth invested in stocks."
-    />
-  </div>
-  <div className="col-span-1">
-    <InputField
-      id="realEstateAllocation"
-      label="Real Estate Allocation (%)"
-      value={realEstateAllocation}
-      onChange={setRealEstateAllocation}
-      tooltip="Percentage of your net worth invested in real estate and other assets."
-    />
-  </div>
-  <div className="col-span-1">
-    <InputField
-      id="reitAllocation"
-      label="REIT Allocation (%)"
-      value={reitAllocation}
-      onChange={setReitAllocation}
-      tooltip="Percentage of your net worth invested in REITs."
-    />
-  </div>
-  <div className="col-span-1">
-    <InputField
-      id="cryptoAllocation"
-      label="Crypto Allocation (%)"
-      value={cryptoAllocation}
-      onChange={setCryptoAllocation}
-      tooltip="Percentage of your net worth invested in cryptocurrencies. "
-    />
-  </div>
-  <div className="col-span-1">
-    <InputField
-      id="bondAllocation"
-      label="Bond Allocation (%)"
-      value={bondAllocation}
-      onChange={setBondAllocation}
-      tooltip="Percentage of your net worth invested in bonds."
-    />
-  </div>
-</div>
+      <div className="grid grid-cols-1 sm:grid-cols-5 gap-4 mb-4">
+        <div className="col-span-1">
+          <InputField
+            id="stockAllocation"
+            label="Stock Allocation (%)"
+            value={stockAllocation}
+            onChange={setStockAllocation}
+            tooltip="Percentage of your net worth invested in stocks."
+          />
+        </div>
+        <div className="col-span-1">
+          <InputField
+            id="realEstateAllocation"
+            label="Real Estate Allocation (%)"
+            value={realEstateAllocation}
+            onChange={setRealEstateAllocation}
+            tooltip="Percentage of your net worth invested in real estate and other assets."
+          />
+        </div>
+        <div className="col-span-1">
+          <InputField
+            id="reitAllocation"
+            label="REIT Allocation (%)"
+            value={reitAllocation}
+            onChange={setReitAllocation}
+            tooltip="Percentage of your net worth invested in REITs."
+          />
+        </div>
+        <div className="col-span-1">
+          <InputField
+            id="cryptoAllocation"
+            label="Crypto Allocation (%)"
+            value={cryptoAllocation}
+            onChange={setCryptoAllocation}
+            tooltip="Percentage of your net worth invested in cryptocurrencies."
+          />
+        </div>
+        <div className="col-span-1">
+          <InputField
+            id="bondAllocation"
+            label="Bond Allocation (%)"
+            value={bondAllocation}
+            onChange={setBondAllocation}
+            tooltip="Percentage of your net worth invested in bonds."
+          />
+        </div>
+      </div>
 
-<div className="grid grid-cols-1 sm:grid-cols-5 gap-4 mb-4">
-  <div className="col-span-1">
-    <InputField
-      id="stockCAGR"
-      label="Stock CAGR (%)"
-      value={stockCAGR}
-      onChange={setStockCAGR}
-      tooltip="The historical average annual return for the US S&P 500 is around 7-10%."
-    />
-  </div>
-  <div className="col-span-1">
-    <InputField
-      id="reitCAGR"
-      label="REIT CAGR (%)"
-      value={reitCAGR}
-      onChange={setReitCAGR}
-      tooltip="The average annual return for REITs is around 8-12%."
-    />
-  </div>
-  <div className="col-span-1">
-    <InputField
-      id="cryptoCAGR"
-      label="Crypto CAGR (%)"
-      value={cryptoCAGR}
-      onChange={setCryptoCAGR}
-      tooltip="You may consider using the historical average annual return for bitcoin, which on the next decade, can be around 25-30%, conservatively."
-    />
-  </div>
-  <div className="col-span-1">
-    <InputField
-      id="bondCAGR"
-      label="Bond CAGR (%)"
-      value={bondCAGR}
-      onChange={setBondCAGR}
-      tooltip="Historically, bonds have an average annual return of around 3-5%."
-    />
-  </div>
-  <div className="col-span-1">
-    <InputField
-      id="realEstateCAGR"
-      label="Real Estate CAGR (%)"
-      value={realEstateCAGR}
-      onChange={setRealEstateCAGR}
-      tooltip="The average annual return for real estate is around 6-8%."
-    />
-  </div>
-</div>
-
-
-   
- 
-
-
-
-
+      <div className="grid grid-cols-1 sm:grid-cols-5 gap-4 mb-4">
+        <div className="col-span-1">
+          <InputField
+            id="stockCAGR"
+            label="Stock CAGR (%)"
+            value={stockCAGR}
+            onChange={setStockCAGR}
+            tooltip="The historical average annual return for the US S&P 500 is around 7-10%."
+          />
+        </div>
+        <div className="col-span-1">
+          <InputField
+            id="reitCAGR"
+            label="REIT CAGR (%)"
+            value={reitCAGR}
+            onChange={setReitCAGR}
+            tooltip="The average annual return for REITs is around 8-12%."
+          />
+        </div>
+        <div className="col-span-1">
+          <InputField
+            id="cryptoCAGR"
+            label="Crypto CAGR (%)"
+            value={cryptoCAGR}
+            onChange={setCryptoCAGR}
+            tooltip="You may consider using the historical average annual return for bitcoin, which on the next decade, can be around 25-30%, conservatively."
+          />
+        </div>
+        <div className="col-span-1">
+          <InputField
+            id="bondCAGR"
+            label="Bond CAGR (%)"
+            value={bondCAGR}
+            onChange={setBondCAGR}
+            tooltip="Historically, bonds have an average annual return of around 3-5%."
+          />
+        </div>
+        <div className="col-span-1">
+          <InputField
+            id="realEstateCAGR"
+            label="Real Estate CAGR (%)"
+            value={realEstateCAGR}
+            onChange={setRealEstateCAGR}
+            tooltip="The average annual return for real estate is around 6-8%."
+          />
+        </div>
+      </div>
 
       <div className="mb-8">
         <h3 className="text-lg font-bold mb-2">Net Worth and Asset Growth Over Time</h3>
-        <LineChart data={lineChartData} />
+        <LineChart data={lineChartData} options={lineChartOptions as any} />
       </div>
 
       <div className="grid grid-cols-2 gap-8">
@@ -338,6 +409,9 @@ const RetirementCalculator = () => {
 
       <div className="mt-4">
         <p className="font-bold">Final Net Worth: {formatCurrency(projectionData[projectionData.length - 1]?.netWorth || 0)}</p>
+        {fireDate && (
+          <p className="font-bold">Estimated FIRE Date: {dayjs(fireDate).format('MMMM D, YYYY')}</p>
+        )}
       </div>
     </div>
   );
