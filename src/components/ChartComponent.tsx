@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import { Chart, ChartOptions } from 'chart.js';
 import zoomPlugin from 'chartjs-plugin-zoom';
 import { debounce } from 'lodash';
