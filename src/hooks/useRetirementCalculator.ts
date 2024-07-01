@@ -5,7 +5,6 @@ import { useEffect, useState } from 'react';
 export const useRetirementCalculator = (
   initialNetWorth: number,
   monthlyContribution: number,
-  monthlyExpenses: number,
   years: number,
   stockAllocation: number,
   reitAllocation: number,
@@ -34,7 +33,7 @@ export const useRetirementCalculator = (
       calculateProjection();
     }
   }, [
-    initialNetWorth, monthlyContribution, monthlyExpenses, years, stockAllocation, reitAllocation, cryptoAllocation, bondAllocation,
+    initialNetWorth, monthlyContribution, years, stockAllocation, reitAllocation, cryptoAllocation, bondAllocation,
     stockCAGR, reitCAGR, cryptoCAGR, bondCAGR, annualInflationRate, initialDate, currentDate, currentNetWorth, isMonthly
   ]);
 
@@ -43,7 +42,7 @@ export const useRetirementCalculator = (
   };
 
   const calculateProjection = () => {
-    const monthlyInvestment = monthlyContribution - monthlyExpenses;
+    const monthlyInvestment = monthlyContribution;
     const months = years * 12;
     const data = [];
 
