@@ -40,6 +40,7 @@ const RetirementCalculator = () => {
   const [currentDate, setCurrentDate] = useLocalStorage<Date>('currentDate', new Date());
   const [currentNetWorth, setCurrentNetWorth] = useLocalStorage<number>('currentNetWorth', 1000);
   const [annualExpenses, setAnnualExpenses] = useLocalStorage<number>('annualExpenses', 40000);
+  const [withdrawalRate, setWithdrawalRate] = useLocalStorage<number>('withdrawalRate', 4);
 
   const { projectionData, assetGrowth, allocationError, fireDate } = useRetirementCalculator(
     initialNetWorth,
@@ -60,7 +61,8 @@ const RetirementCalculator = () => {
     currentDate,
     currentNetWorth,
     true,
-    annualExpenses
+    annualExpenses,
+    withdrawalRate
   );
 
   const formatCurrency = (value: any) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);
@@ -118,26 +120,6 @@ const RetirementCalculator = () => {
         pointBackgroundColor: 'rgba(255, 99, 132, 0.5)',
       },
     ],
-    options: {
-      plugins: {
-        annotation: {
-          annotations: fireDate ? {
-            line1: {
-              type: 'line',
-              xMin: fireDate,
-              xMax: fireDate,
-              borderColor: 'yellow',
-              borderWidth: 2,
-              label: {
-                content: 'FIRE Date',
-                enabled: true,
-                position: 'top'
-              }
-            }
-          } : {}
-        }
-      }
-    }
   };
 
   const lineChartOptions = {
@@ -185,18 +167,11 @@ const RetirementCalculator = () => {
             borderColor: 'yellow',
             borderWidth: 2,
             borderDash: [5, 5],
-
           }
         } : {}
       },
-
     },
   };
-
-
-
-
-
 
   const pieChartData = {
     labels: assetGrowth.map((a) => a.name),
@@ -304,6 +279,15 @@ const RetirementCalculator = () => {
             tooltip="Your estimated annual expenses in retirement."
           />
         </div>
+        <div className="col-span-1">
+          <InputField
+            id="withdrawalRate"
+            label="Withdrawal Rate (%)"
+            value={withdrawalRate}
+            onChange={setWithdrawalRate}
+            tooltip="The percentage of your portfolio you plan to withdraw annually in retirement. Default is 4% based on the '4% rule'."
+          />
+        </div>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-5 gap-4 mb-4">
@@ -399,33 +383,33 @@ const RetirementCalculator = () => {
             onChange={setRealEstateCAGR}
             tooltip="The average annual return for real estate is around 6-8%."
           />
-        </div>
-      </div>
+        </div></div>
 
-      <div className="mb-8">
-        <h3 className="text-lg font-bold mb-2">Net Worth and Asset Growth Over Time</h3>
-        <LineChart data={lineChartData} options={lineChartOptions as any} />
-      </div>
+<div className="mb-8">
+  <h3 className="text-lg font-bold mb-2">Net Worth and Asset Growth Over Time</h3>
+  <LineChart data={lineChartData} options={lineChartOptions as any} />
+</div>
 
-      <div className="grid grid-cols-2 gap-8">
-        <div>
-          <h3 className="text-lg font-bold mb-2">Final Asset Allocation</h3>
-          <PieChart data={pieChartData} />
-        </div>
-        <div>
-          <h3 className="text-lg font-bold mb-2">Asset Growth Comparison</h3>
-          <BarChart data={barChartData} />
-        </div>
-      </div>
+<div className="grid grid-cols-2 gap-8">
+  <div>
+    <h3 className="text-lg font-bold mb-2">Final Asset Allocation</h3>
+    <PieChart data={pieChartData} />
+  </div>
+  <div>
+    <h3 className="text-lg font-bold mb-2">Asset Growth Comparison</h3>
+    <BarChart data={barChartData} />
+  </div>
+</div>
 
-      <div className="mt-4">
-        <p className="font-bold">Final Net Worth: {formatCurrency(projectionData[projectionData.length - 1]?.netWorth || 0)}</p>
-        {fireDate && (
-          <p className="font-bold">Estimated FIRE Date: {dayjs(fireDate).format('MMMM D, YYYY')}</p>
-        )}
-      </div>
-    </div>
-  );
+<div className="mt-4">
+  <p className="font-bold">Final Net Worth: {formatCurrency(projectionData[projectionData.length - 1]?.netWorth || 0)}</p>
+  {fireDate && (
+    <p className="font-bold">Estimated FIRE Date: {dayjs(fireDate).format('MMMM D, YYYY')}</p>
+  )}
+  <p className="font-bold">Annual Withdrawal: {formatCurrency((projectionData[projectionData.length - 1]?.netWorth || 0) * (withdrawalRate / 100))}</p>
+</div>
+</div>
+);
 };
 
 export default RetirementCalculator;

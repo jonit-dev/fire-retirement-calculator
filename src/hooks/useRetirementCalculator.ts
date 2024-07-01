@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 import dayjs from 'dayjs';
 import { useEffect, useState } from 'react';
 
@@ -21,7 +20,8 @@ export const useRetirementCalculator = (
   currentDate: Date,
   currentNetWorth: number,
   isMonthly: boolean,
-  annualExpenses: number
+  annualExpenses: number,
+  withdrawalRate: number
 ) => {
   const [projectionData, setProjectionData] = useState<any[]>([]);
   const [assetGrowth, setAssetGrowth] = useState<any[]>([]);
@@ -39,7 +39,7 @@ export const useRetirementCalculator = (
   }, [
     initialNetWorth, monthlyContribution, years, stockAllocation, reitAllocation, cryptoAllocation, bondAllocation,
     realEstateAllocation, stockCAGR, reitCAGR, cryptoCAGR, bondCAGR, realEstateCAGR, annualInflationRate, initialDate,
-    currentDate, currentNetWorth, isMonthly, annualExpenses
+    currentDate, currentNetWorth, isMonthly, annualExpenses, withdrawalRate
   ]);
 
   const adjustForInflation = (value: number, months: number, annualInflationRate: number) => {
@@ -69,7 +69,7 @@ export const useRetirementCalculator = (
     let bondValue = projectedNetWorth * bondAllocation / 100;
     let realEstateValue = projectedNetWorth * realEstateAllocation / 100;
   
-    const fireTarget = annualExpenses / 0.04;
+    const fireTarget = annualExpenses / (withdrawalRate / 100);
     let fireDateFound = false;
   
     const inflationAdjustments = Array.from({ length: totalMonths + 1 }, (_, i) => adjustForInflation(1, i, annualInflationRate));
@@ -143,7 +143,6 @@ export const useRetirementCalculator = (
       { name: 'Real Estate', value: realEstateValue * inflationAdjustments[totalMonths] }
     ]);
   };
-  
 
   return { projectionData, assetGrowth, allocationError, fireDate };
 };
