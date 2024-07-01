@@ -38,7 +38,7 @@ export const useRetirementCalculator = (
   ]);
 
   const adjustForInflation = (value: number, months: number, annualInflationRate: number) => {
-    return value / (1 + annualInflationRate / 100) ** (months / 12);
+    return value / Math.pow((1 + annualInflationRate / 100), (months / 12));
   };
 
   const calculateProjection = () => {
@@ -53,7 +53,6 @@ export const useRetirementCalculator = (
     let totalMonths = endDateDayjs.diff(initialDateDayjs, 'month');
     let currentProgressMonths = currentDateDayjs.diff(initialDateDayjs, 'month');
 
-    // Adjust total months if current date is beyond the end date
     if (currentProgressMonths > totalMonths) {
       totalMonths = currentProgressMonths;
     }
@@ -64,11 +63,13 @@ export const useRetirementCalculator = (
     let cryptoValue = projectedNetWorth * cryptoAllocation / 100;
     let bondValue = projectedNetWorth * bondAllocation / 100;
 
+    const inflationAdjustments = Array.from({ length: totalMonths + 1 }, (_, i) => adjustForInflation(1, i, annualInflationRate));
+    
     for (let i = 0; i <= totalMonths; i++) {
       const date = initialDateDayjs.add(i, 'month');
 
       if (i > 0) {
-        const adjustedMonthlyInvestment = adjustForInflation(monthlyInvestment, i, annualInflationRate);
+        const adjustedMonthlyInvestment = monthlyInvestment * inflationAdjustments[i];
 
         stockValue = (stockValue + adjustedMonthlyInvestment * stockAllocation / 100) * (1 + stockCAGR / 100 / 12);
         reitValue = (reitValue + adjustedMonthlyInvestment * reitAllocation / 100) * (1 + reitCAGR / 100 / 12);
@@ -80,11 +81,11 @@ export const useRetirementCalculator = (
       if (isMonthly || i % 12 === 0 || i === totalMonths) {
         const dataPoint = {
           date: date.format('YYYY-MM-DD'),
-          netWorth: adjustForInflation(projectedNetWorth, i, annualInflationRate),
-          stocks: adjustForInflation(stockValue, i, annualInflationRate),
-          reit: adjustForInflation(reitValue, i, annualInflationRate),
-          crypto: adjustForInflation(cryptoValue, i, annualInflationRate),
-          bonds: adjustForInflation(bondValue, i, annualInflationRate),
+          netWorth: projectedNetWorth * inflationAdjustments[i],
+          stocks: stockValue * inflationAdjustments[i],
+          reit: reitValue * inflationAdjustments[i],
+          crypto: cryptoValue * inflationAdjustments[i],
+          bonds: bondValue * inflationAdjustments[i],
         } as any;
 
         if (i === currentProgressMonths) {
@@ -95,39 +96,32 @@ export const useRetirementCalculator = (
       }
     }
 
-    // Ensure current progress point is included
     if (!data.some(d => d.currentProgress)) {
       const currentProgressDate = currentDateDayjs.format('YYYY-MM-DD');
       const index = data.findIndex(d => dayjs(d.date).isAfter(currentDateDayjs));
+      const currentProgressPoint = {
+        date: currentProgressDate,
+        currentProgress: currentNetWorth,
+        netWorth: null,
+        stocks: stockValue,
+        reit: reitValue,
+        crypto: cryptoValue,
+        bonds: bondValue,
+      };
+
       if (index !== -1) {
-        data.splice(index, 0, {
-          date: currentProgressDate,
-          currentProgress: currentNetWorth,
-          netWorth: null,
-          stocks: stockValue,
-          reit: reitValue,
-          crypto: cryptoValue,
-          bonds: bondValue,
-        });
+        data.splice(index, 0, currentProgressPoint);
       } else {
-        data.push({
-          date: currentProgressDate,
-          currentProgress: currentNetWorth,
-          netWorth: null,
-          stocks: stockValue,
-          reit: reitValue,
-          crypto: cryptoValue,
-          bonds: bondValue,
-        });
+        data.push(currentProgressPoint);
       }
     }
 
     setProjectionData(data);
     setAssetGrowth([
-      { name: 'Stocks', value: adjustForInflation(stockValue, totalMonths, annualInflationRate) },
-      { name: 'REIT', value: adjustForInflation(reitValue, totalMonths, annualInflationRate) },
-      { name: 'Crypto', value: adjustForInflation(cryptoValue, totalMonths, annualInflationRate) },
-      { name: 'Bonds', value: adjustForInflation(bondValue, totalMonths, annualInflationRate) }
+      { name: 'Stocks', value: stockValue * inflationAdjustments[totalMonths] },
+      { name: 'REIT', value: reitValue * inflationAdjustments[totalMonths] },
+      { name: 'Crypto', value: cryptoValue * inflationAdjustments[totalMonths] },
+      { name: 'Bonds', value: bondValue * inflationAdjustments[totalMonths] }
     ]);
   };
 
