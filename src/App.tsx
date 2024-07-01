@@ -29,11 +29,11 @@ const RetirementCalculator = () => {
   const [bondAllocation, setBondAllocation] = useLocalStorage<number>('bondAllocation', 25);
   const [realEstateAllocation, setRealEstateAllocation] = useLocalStorage<number>('realEstateAllocation', 10);
   const [stockCAGR, setStockCAGR] = useLocalStorage<number>('stockCAGR', 7);
-  const [reitCAGR, setReitCAGR] = useLocalStorage<number>('reitCAGR', 4);
-  const [cryptoCAGR, setCryptoCAGR] = useLocalStorage<number>('cryptoCAGR', 10);
-  const [bondCAGR, setBondCAGR] = useLocalStorage<number>('bondCAGR', 3);
+  const [reitCAGR, setReitCAGR] = useLocalStorage<number>('reitCAGR', 8);
+  const [cryptoCAGR, setCryptoCAGR] = useLocalStorage<number>('cryptoCAGR', 25);
+  const [bondCAGR, setBondCAGR] = useLocalStorage<number>('bondCAGR', 4);
   const [realEstateCAGR, setRealEstateCAGR] = useLocalStorage<number>('realEstateCAGR', 6);
-  const [annualInflationRate, setAnnualInflationRate] = useLocalStorage<number>('annualInflationRate', 2);
+  const [annualInflationRate, setAnnualInflationRate] = useLocalStorage<number>('annualInflationRate', 3);
   const [initialDate, setInitialDate] = useLocalStorage<Date>('initialDate', new Date());
   const [currentDate, setCurrentDate] = useLocalStorage<Date>('currentDate', new Date());
   const [currentNetWorth, setCurrentNetWorth] = useLocalStorage<number>('currentNetWorth', 1000);
@@ -147,6 +147,7 @@ const RetirementCalculator = () => {
           {allocationError}
         </div>
       )}
+     
      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
   <div className="col-span-1">
     <InputField
@@ -169,7 +170,7 @@ const RetirementCalculator = () => {
   <div className="col-span-1">
     <InputField
       id="years"
-      label="Projection Years"
+      label="Total Projection Years"
       value={years}
       onChange={setYears}
       tooltip="Number of years you plan to keep contributing."
@@ -181,7 +182,7 @@ const RetirementCalculator = () => {
       label="Annual Inflation Rate (%)"
       value={annualInflationRate}
       onChange={setAnnualInflationRate}
-      tooltip="Expected annual inflation rate."
+      tooltip="Expected annual inflation rate, typically around 2-3% in the US."
     />
   </div>
   <div className="col-span-1">
@@ -249,7 +250,7 @@ const RetirementCalculator = () => {
       label="Crypto Allocation (%)"
       value={cryptoAllocation}
       onChange={setCryptoAllocation}
-      tooltip="Percentage of your net worth invested in cryptocurrencies."
+      tooltip="Percentage of your net worth invested in cryptocurrencies. "
     />
   </div>
   <div className="col-span-1">
@@ -261,7 +262,6 @@ const RetirementCalculator = () => {
       tooltip="Percentage of your net worth invested in bonds."
     />
   </div>
- 
 </div>
 
 <div className="grid grid-cols-1 sm:grid-cols-5 gap-4 mb-4">
@@ -271,7 +271,7 @@ const RetirementCalculator = () => {
       label="Stock CAGR (%)"
       value={stockCAGR}
       onChange={setStockCAGR}
-      tooltip="Expected annual growth rate for stocks."
+      tooltip="The historical average annual return for the US S&P 500 is around 7-10%."
     />
   </div>
   <div className="col-span-1">
@@ -280,7 +280,7 @@ const RetirementCalculator = () => {
       label="REIT CAGR (%)"
       value={reitCAGR}
       onChange={setReitCAGR}
-      tooltip="Expected annual growth rate for REITs."
+      tooltip="The average annual return for REITs is around 8-12%."
     />
   </div>
   <div className="col-span-1">
@@ -289,7 +289,7 @@ const RetirementCalculator = () => {
       label="Crypto CAGR (%)"
       value={cryptoCAGR}
       onChange={setCryptoCAGR}
-      tooltip="Expected annual growth rate for cryptocurrencies."
+      tooltip="You may consider using the historical average annual return for bitcoin, which on the next decade, can be around 25-30%, conservatively."
     />
   </div>
   <div className="col-span-1">
@@ -298,7 +298,7 @@ const RetirementCalculator = () => {
       label="Bond CAGR (%)"
       value={bondCAGR}
       onChange={setBondCAGR}
-      tooltip="Expected annual growth rate for bonds."
+      tooltip="Historically, bonds have an average annual return of around 3-5%."
     />
   </div>
   <div className="col-span-1">
@@ -307,15 +307,19 @@ const RetirementCalculator = () => {
       label="Real Estate CAGR (%)"
       value={realEstateCAGR}
       onChange={setRealEstateCAGR}
-      tooltip="Expected annual growth rate for real estate and other assets."
+      tooltip="The average annual return for real estate is around 6-8%."
     />
   </div>
 </div>
 
 
    
+ 
 
-      
+
+
+
+
       <div className="mb-8">
         <h3 className="text-lg font-bold mb-2">Net Worth and Asset Growth Over Time</h3>
         <LineChart data={lineChartData} />
