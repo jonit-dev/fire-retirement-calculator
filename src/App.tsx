@@ -24,7 +24,7 @@ ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, Title, T
 const RetirementCalculator = () => {
   const [initialNetWorth, setInitialNetWorth] = useLocalStorage<number>('initialNetWorth', 1000);
   const [monthlyContribution, setMonthlyContribution] = useLocalStorage<number>('monthlyContribution', 500);
-  const [years, setYears] = useLocalStorage<number>('years', 30);
+  const [years, setYears] = useLocalStorage<number>('years', 40);
   const [stockAllocation, setStockAllocation] = useLocalStorage<number>('stockAllocation', 50);
   const [reitAllocation, setReitAllocation] = useLocalStorage<number>('reitAllocation', 10);
   const [cryptoAllocation, setCryptoAllocation] = useLocalStorage<number>('cryptoAllocation', 5);
