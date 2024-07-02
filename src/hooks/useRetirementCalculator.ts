@@ -74,6 +74,7 @@ export const useRetirementCalculator = (
     let isRetired = false;
   
     const inflationAdjustments = Array.from({ length: totalMonths + 1 }, (_, i) => adjustForInflation(1, i, annualInflationRate));
+    const adjustedAnnualExpenses = annualExpenses * inflationAdjustments[totalMonths];
   
     for (let i = 0; i <= totalMonths; i++) {
       const date = initialDateDayjs.add(i, 'month');
@@ -89,7 +90,7 @@ export const useRetirementCalculator = (
         projectedNetWorth = stockValue + reitValue + cryptoValue + bondValue + realEstateValue;
 
         if (isRetired && includeWithdrawals) {
-          const monthlyWithdrawal = (annualExpenses / 12) * inflationAdjustments[i];
+          const monthlyWithdrawal = (adjustedAnnualExpenses / 12);
           const totalWithdrawal = monthlyWithdrawal;
           
           // Withdraw proportionally from each asset class
