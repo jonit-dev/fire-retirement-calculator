@@ -1,7 +1,9 @@
 module.exports = {
   darkMode: 'class', // or 'media' if you prefer
   content: [
-    './src/**/*.{js,jsx,ts,tsx}', // adjust the path to your project's structure
+    './src/**/*.{js,jsx,ts,tsx}',
+    'node_modules/daisyui/dist/**/*.js',
+    'node_modules/react-daisyui/dist/**/*.js',
   ],
  
   plugins: [
@@ -10,4 +12,5 @@ module.exports = {
   daisyui: {
     themes: ['dark'],
   },
+ 
 };
