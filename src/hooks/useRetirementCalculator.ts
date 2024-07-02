@@ -1,6 +1,22 @@
 import dayjs from 'dayjs';
 import { useEffect, useState } from 'react';
 
+interface ProjectionData {
+  date: string;
+  netWorth: number  | null;
+  stocks: number;
+  reit: number;
+  crypto: number;
+  bonds: number;
+  realEstate: number;
+  currentProgress?: number;
+}
+
+interface AssetGrowth {
+  name: string;
+  value: number;
+}
+
 export const useRetirementCalculator = (
   initialNetWorth: number,
   monthlyContribution: number,
@@ -24,8 +40,8 @@ export const useRetirementCalculator = (
   withdrawalRate: number,
   includeWithdrawals: boolean
 ) => {
-  const [projectionData, setProjectionData] = useState<any[]>([]);
-  const [assetGrowth, setAssetGrowth] = useState<any[]>([]);
+  const [projectionData, setProjectionData] = useState<ProjectionData[]>([]);
+  const [assetGrowth, setAssetGrowth] = useState<AssetGrowth[]>([]);
   const [allocationError, setAllocationError] = useState('');
   const [fireDate, setFireDate] = useState<Date | null>(null);
 
@@ -43,26 +59,37 @@ export const useRetirementCalculator = (
     currentDate, currentNetWorth, isMonthly, annualExpenses, withdrawalRate, includeWithdrawals
   ]);
 
-  const adjustForInflation = (value: number, months: number, annualInflationRate: number) => {
+  const adjustForInflation = (value: number, months: number, annualInflationRate: number): number => {
     return value / Math.pow((1 + annualInflationRate / 100), (months / 12));
   };
 
+  const calculateAdjustedMonthlyInvestment = (monthlyInvestment: number, isRetired: boolean, inflationAdjustments: number[], i: number): number => {
+    return isRetired ? 0 : monthlyInvestment * inflationAdjustments[i];
+  };
+
+  const updateAssetValues = (value: number, allocation: number, CAGR: number, monthlyInvestment: number): number => {
+    return (value + monthlyInvestment * allocation / 100) * (1 + CAGR / 100 / 12);
+  };
+
+  const calculateWithdrawals = (adjustedAnnualExpenses: number, assetValues: number[], projectedNetWorth: number): number[] => {
+    const monthlyWithdrawal = adjustedAnnualExpenses / 12;
+    return assetValues.map(value => value - (monthlyWithdrawal * (value / projectedNetWorth)));
+  };
+
   const calculateProjection = () => {
-    const monthlyInvestment = monthlyContribution;
     const months = years * 12;
-    const data = [];
-  
+    const data: ProjectionData[] = [];
     const initialDateDayjs = dayjs(initialDate);
     const currentDateDayjs = dayjs(currentDate);
     const endDateDayjs = initialDateDayjs.add(months, 'month');
-  
+
     let totalMonths = endDateDayjs.diff(initialDateDayjs, 'month');
     let currentProgressMonths = currentDateDayjs.diff(initialDateDayjs, 'month');
-  
+
     if (currentProgressMonths > totalMonths) {
       totalMonths = currentProgressMonths;
     }
-  
+
     let projectedNetWorth = initialNetWorth;
     let stockValue = projectedNetWorth * stockAllocation / 100;
     let reitValue = projectedNetWorth * reitAllocation / 100;
@@ -72,46 +99,32 @@ export const useRetirementCalculator = (
     const fireTarget = annualExpenses / (withdrawalRate / 100);
     let fireDateFound = false;
     let isRetired = false;
-  
+
     const inflationAdjustments = Array.from({ length: totalMonths + 1 }, (_, i) => adjustForInflation(1, i, annualInflationRate));
     const adjustedAnnualExpenses = annualExpenses * inflationAdjustments[totalMonths];
-  
+
     for (let i = 0; i <= totalMonths; i++) {
       const date = initialDateDayjs.add(i, 'month');
-  
+
       if (i > 0) {
-        const adjustedMonthlyInvestment = isRetired ? 0 : monthlyInvestment * inflationAdjustments[i];
-  
-        stockValue = (stockValue + adjustedMonthlyInvestment * stockAllocation / 100) * (1 + stockCAGR / 100 / 12);
-        reitValue = (reitValue + adjustedMonthlyInvestment * reitAllocation / 100) * (1 + reitCAGR / 100 / 12);
-        cryptoValue = (cryptoValue + adjustedMonthlyInvestment * cryptoAllocation / 100) * (1 + cryptoCAGR / 100 / 12);
-        bondValue = (bondValue + adjustedMonthlyInvestment * bondAllocation / 100) * (1 + bondCAGR / 100 / 12);
-        realEstateValue = (realEstateValue + adjustedMonthlyInvestment * realEstateAllocation / 100) * (1 + realEstateCAGR / 100 / 12);
+        const adjustedMonthlyInvestment = calculateAdjustedMonthlyInvestment(monthlyContribution, isRetired, inflationAdjustments, i);
+
+        stockValue = updateAssetValues(stockValue, stockAllocation, stockCAGR, adjustedMonthlyInvestment);
+        reitValue = updateAssetValues(reitValue, reitAllocation, reitCAGR, adjustedMonthlyInvestment);
+        cryptoValue = updateAssetValues(cryptoValue, cryptoAllocation, cryptoCAGR, adjustedMonthlyInvestment);
+        bondValue = updateAssetValues(bondValue, bondAllocation, bondCAGR, adjustedMonthlyInvestment);
+        realEstateValue = updateAssetValues(realEstateValue, realEstateAllocation, realEstateCAGR, adjustedMonthlyInvestment);
         projectedNetWorth = stockValue + reitValue + cryptoValue + bondValue + realEstateValue;
 
         if (isRetired && includeWithdrawals) {
-          const monthlyWithdrawal = (adjustedAnnualExpenses / 12);
-          const totalWithdrawal = monthlyWithdrawal;
-          
-          // Withdraw proportionally from each asset class
-          const stockWithdrawal = totalWithdrawal * (stockValue / projectedNetWorth);
-          const reitWithdrawal = totalWithdrawal * (reitValue / projectedNetWorth);
-          const cryptoWithdrawal = totalWithdrawal * (cryptoValue / projectedNetWorth);
-          const bondWithdrawal = totalWithdrawal * (bondValue / projectedNetWorth);
-          const realEstateWithdrawal = totalWithdrawal * (realEstateValue / projectedNetWorth);
-
-          stockValue -= stockWithdrawal;
-          reitValue -= reitWithdrawal;
-          cryptoValue -= cryptoWithdrawal;
-          bondValue -= bondWithdrawal;
-          realEstateValue -= realEstateWithdrawal;
-
-          projectedNetWorth -= totalWithdrawal;
+          const updatedValues = calculateWithdrawals(adjustedAnnualExpenses, [stockValue, reitValue, cryptoValue, bondValue, realEstateValue], projectedNetWorth);
+          [stockValue, reitValue, cryptoValue, bondValue, realEstateValue] = updatedValues;
+          projectedNetWorth = updatedValues.reduce((acc, val) => acc + val, 0);
         }
       }
-  
+
       if (isMonthly || i % 12 === 0 || i === totalMonths) {
-        const dataPoint = {
+        const dataPoint: ProjectionData = {
           date: date.format('YYYY-MM-DD'),
           netWorth: projectedNetWorth * inflationAdjustments[i],
           stocks: stockValue * inflationAdjustments[i],
@@ -119,15 +132,14 @@ export const useRetirementCalculator = (
           crypto: cryptoValue * inflationAdjustments[i],
           bonds: bondValue * inflationAdjustments[i],
           realEstate: realEstateValue * inflationAdjustments[i],
-        } as any;
-  
+        };
+
         if (i === currentProgressMonths) {
           dataPoint.currentProgress = currentNetWorth;
         }
-  
+
         data.push(dataPoint);
-  
-        // Determine FIRE date
+
         if (!fireDateFound && projectedNetWorth * inflationAdjustments[i] >= fireTarget) {
           setFireDate(date.toDate());
           fireDateFound = true;
@@ -135,11 +147,11 @@ export const useRetirementCalculator = (
         }
       }
     }
-  
+
     if (!data.some(d => d.currentProgress)) {
       const currentProgressDate = currentDateDayjs.format('YYYY-MM-DD');
       const index = data.findIndex(d => dayjs(d.date).isAfter(currentDateDayjs));
-      const currentProgressPoint = {
+      const currentProgressPoint: ProjectionData = {
         date: currentProgressDate,
         currentProgress: currentNetWorth,
         netWorth: null,
@@ -149,14 +161,14 @@ export const useRetirementCalculator = (
         bonds: bondValue,
         realEstate: realEstateValue,
       };
-  
+
       if (index !== -1) {
         data.splice(index, 0, currentProgressPoint);
       } else {
         data.push(currentProgressPoint);
       }
     }
-  
+
     setProjectionData(data);
     setAssetGrowth([
       { name: 'Stocks', value: stockValue * inflationAdjustments[totalMonths] },
