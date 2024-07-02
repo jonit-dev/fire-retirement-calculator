@@ -106,7 +106,7 @@ const RetirementCalculator = () => {
   const [taxRate, setTaxRate] = useLocalStorage<number>('taxRate', 20);
   const [reinvestExcess, setReinvestExcess] = useLocalStorage<boolean>(
     'reinvestExcess',
-    true
+    false
   );
 
   const { projectionData, assetGrowth, allocationError, fireDate } =
