@@ -12,12 +12,12 @@ import {
 } from 'chart.js';
 import annotationPlugin from 'chartjs-plugin-annotation';
 import zoomPlugin from 'chartjs-plugin-zoom';
-import { BarChart, LineChart, PieChart } from './components/ChartComponent';
-
 import { useState } from 'react';
-import { Tabs } from 'react-daisyui';
+import { Tabs, Toggle } from 'react-daisyui';
+import { BarChart, LineChart, PieChart } from './components/ChartComponent';
 import FIRESummary from './components/FIRESummary';
 import InputFields from './components/InputFields';
+
 import {
   getBarChartData,
   getLineChartData,
@@ -103,7 +103,11 @@ const RetirementCalculator = () => {
     'withdrawalRate',
     4
   );
-  const [taxRate, setTaxRate] = useLocalStorage<number>('taxRate', 20); // Add tax rate state
+  const [taxRate, setTaxRate] = useLocalStorage<number>('taxRate', 20);
+  const [reinvestExcess, setReinvestExcess] = useLocalStorage<boolean>(
+    'reinvestExcess',
+    true
+  );
 
   const { projectionData, assetGrowth, allocationError, fireDate } =
     useRetirementCalculator(
@@ -128,7 +132,8 @@ const RetirementCalculator = () => {
       annualExpenses,
       withdrawalRate,
       true,
-      taxRate // Pass tax rate to hook
+      taxRate,
+      reinvestExcess
     );
 
   const formatCurrency = (value: any) =>
@@ -165,6 +170,7 @@ const RetirementCalculator = () => {
     withdrawalRate,
     currentAge,
     taxRate,
+    reinvestExcess,
   };
 
   const setValues = {
@@ -189,6 +195,7 @@ const RetirementCalculator = () => {
     setWithdrawalRate,
     setCurrentAge,
     setTaxRate,
+    setReinvestExcess,
   };
 
   const netWorthAtFire = getNetWorthAtFireDate(projectionData, fireDate!);
@@ -230,6 +237,15 @@ const RetirementCalculator = () => {
               timeline.
             </div>
           )}
+
+          <div className="flex items-center mt-4">
+            <span className="mr-2">Reinvest Excess After F.I.R.E:</span>
+            <Toggle
+              checked={reinvestExcess}
+              onChange={() => setReinvestExcess(!reinvestExcess)}
+              color="primary"
+            />
+          </div>
         </div>
 
         {allocationError && (
