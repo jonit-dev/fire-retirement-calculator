@@ -17,10 +17,12 @@ const InputFields: React.FC<InputFieldsProps> = ({ values, setValues }) => {
     {
       title: "General Information",
       fields: [
+        { id: 'currentAge', label: 'Current Age', value: values.currentAge, onChange: setValues.setCurrentAge, tooltip: 'Your current age.' },
+
         { id: 'initialNetWorth', label: 'Initial Net Worth ($)', value: values.initialNetWorth, onChange: setValues.setInitialNetWorth, tooltip: 'Initial amount of money you have for retirement.' },
         { id: 'monthlyContribution', label: 'Monthly Contribution ($)', value: values.monthlyContribution, onChange: setValues.setMonthlyContribution, tooltip: 'Amount you contribute monthly towards retirement.' },
         { id: 'years', label: 'Total Projection Years', value: values.years, onChange: setValues.setYears, tooltip: 'Number of years you plan to keep contributing.' },
-        { id: 'annualInflationRate', label: 'Annual Inflation Rate (%)', value: values.annualInflationRate, onChange: setValues.setAnnualInflationRate, tooltip: 'Expected annual inflation rate, typically around 2-3% in the US.' },
+        { id: 'annualInflationRate', label: 'Annual Inflation Rate (%)', value: values.annualInflationRate, onChange: setValues.setAnnualInflationRate, tooltip: 'Expected annual inflation rate is typically around 2-3% in the US (CPI). Alternative sources estimate higher rates, potentially up to 5-7%.' },
         { id: 'initialDate', label: 'Initial Date', value: values.initialDate, onChange: setValues.setInitialDate, type: 'date', tooltip: 'The start date for the projection.' },
         { id: 'currentDate', label: 'Current Date', value: values.currentDate, onChange: setValues.setCurrentDate, type: 'date', tooltip: 'The current date for the projection.' },
         { id: 'currentNetWorth', label: 'Current Net Worth ($)', value: values.currentNetWorth, onChange: setValues.setCurrentNetWorth, tooltip: 'Your current net worth.' },
