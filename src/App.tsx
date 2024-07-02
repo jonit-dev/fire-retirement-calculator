@@ -44,6 +44,7 @@ const RetirementCalculator = () => {
   const [currentNetWorth, setCurrentNetWorth] = useLocalStorage<number>('currentNetWorth', 10000);
   const [annualExpenses, setAnnualExpenses] = useLocalStorage<number>('annualExpenses', 40000);
   const [withdrawalRate, setWithdrawalRate] = useLocalStorage<number>('withdrawalRate', 4);
+  const [taxRate, setTaxRate] = useLocalStorage<number>('taxRate', 20); // Add tax rate state
 
   const { projectionData, assetGrowth, allocationError, fireDate } = useRetirementCalculator(
     initialNetWorth,
@@ -66,7 +67,8 @@ const RetirementCalculator = () => {
     true,
     annualExpenses,
     withdrawalRate,
-    true
+    true,
+    taxRate // Pass tax rate to hook
   );
 
   const formatCurrency = (value: any) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value);
@@ -78,11 +80,11 @@ const RetirementCalculator = () => {
   const barChartData = getBarChartData(assetGrowth);
 
   const values = {
-    initialNetWorth, monthlyContribution, years, stockAllocation, reitAllocation, cryptoAllocation, bondAllocation, realEstateAllocation, stockCAGR, reitCAGR, cryptoCAGR, bondCAGR, realEstateCAGR, annualInflationRate, initialDate, currentDate, currentNetWorth, annualExpenses, withdrawalRate, currentAge,
+    initialNetWorth, monthlyContribution, years, stockAllocation, reitAllocation, cryptoAllocation, bondAllocation, realEstateAllocation, stockCAGR, reitCAGR, cryptoCAGR, bondCAGR, realEstateCAGR, annualInflationRate, initialDate, currentDate, currentNetWorth, annualExpenses, withdrawalRate, currentAge, taxRate,
   };
 
   const setValues = {
-    setInitialNetWorth, setMonthlyContribution, setYears, setStockAllocation, setReitAllocation, setCryptoAllocation, setBondAllocation, setRealEstateAllocation, setStockCAGR, setReitCAGR, setCryptoCAGR, setBondCAGR, setRealEstateCAGR, setAnnualInflationRate, setInitialDate, setCurrentDate, setCurrentNetWorth, setAnnualExpenses, setWithdrawalRate, setCurrentAge,
+    setInitialNetWorth, setMonthlyContribution, setYears, setStockAllocation, setReitAllocation, setCryptoAllocation, setBondAllocation, setRealEstateAllocation, setStockCAGR, setReitCAGR, setCryptoCAGR, setBondCAGR, setRealEstateCAGR, setAnnualInflationRate, setInitialDate, setCurrentDate, setCurrentNetWorth, setAnnualExpenses, setWithdrawalRate, setCurrentAge, setTaxRate,
   };
 
   const netWorthAtFire = getNetWorthAtFireDate(projectionData, fireDate!);
@@ -97,6 +99,17 @@ const RetirementCalculator = () => {
       <div className="w-full max-w-8xl mx-auto p-4 shadow-lg mb-8">
         <h3 className="text-lg font-bold mb-2">Net Worth and Asset Growth Over Time</h3>
         <LineChart data={lineChartData} options={lineChartOptions as any} />
+      </div>
+
+      <div className="grid grid-cols-2 gap-8">
+        <div>
+          <h3 className="text-lg font-bold mb-2">Final Asset Allocation</h3>
+          <PieChart data={pieChartData} />
+        </div>
+        <div>
+          <h3 className="text-lg font-bold mb-2">Asset Growth Comparison</h3>
+          <BarChart data={barChartData} />
+        </div>
       </div>
 
       {!fireDate && (
@@ -116,8 +129,9 @@ const RetirementCalculator = () => {
         fireDate={fireDate}
         currentAge={currentAge}
         formatCurrency={formatCurrency}
+        taxRate={taxRate}  
+        inflationRate={annualInflationRate}
       />
-
 
       {allocationError && (
         <div className="mb-4 p-4 bg-red-600 text-white border border-red-800 rounded">
@@ -127,16 +141,7 @@ const RetirementCalculator = () => {
 
       <InputFields values={values} setValues={setValues} />
 
-      <div className="grid grid-cols-2 gap-8">
-        <div>
-          <h3 className="text-lg font-bold mb-2">Final Asset Allocation</h3>
-          <PieChart data={pieChartData} />
-        </div>
-        <div>
-          <h3 className="text-lg font-bold mb-2">Asset Growth Comparison</h3>
-          <BarChart data={barChartData} />
-        </div>
-      </div>
+    
     </div>
   );
 };

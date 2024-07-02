@@ -28,6 +28,7 @@ const InputFields: React.FC<InputFieldsProps> = ({ values, setValues }) => {
         { id: 'currentNetWorth', label: 'Current Net Worth ($)', value: values.currentNetWorth, onChange: setValues.setCurrentNetWorth, tooltip: 'Your current net worth.' },
         { id: 'annualExpenses', label: 'Annual Expenses ($)', value: values.annualExpenses, onChange: setValues.setAnnualExpenses, tooltip: 'Your estimated annual expenses in retirement.' },
         { id: 'withdrawalRate', label: 'Withdrawal Rate (%)', value: values.withdrawalRate, onChange: setValues.setWithdrawalRate, tooltip: 'The percentage of your portfolio you plan to withdraw annually in retirement. Default is 4% based on the \'4% rule\'.' },
+        { id: 'taxRate', label: 'Tax Rate (%)', value: values.taxRate, onChange: setValues.setTaxRate, tooltip: 'The percentage of your income that goes to taxes.' },
       ]
     },
     {
@@ -55,7 +56,7 @@ const InputFields: React.FC<InputFieldsProps> = ({ values, setValues }) => {
   return (
 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-6">
       {fieldGroups.map((group, index) => (
-        <Card key={index} className="bg-gray-800 border-gray-700">
+        <Card key={index} className="bg-gray-900 border-gray-700 mt-2 mb-2">
           <CardHeader>
             <h3 className="text-xl font-semibold text-white">{group.title}</h3>
           </CardHeader>

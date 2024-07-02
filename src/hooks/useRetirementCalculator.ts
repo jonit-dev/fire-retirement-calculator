@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 
 interface ProjectionData {
   date: string;
-  netWorth: number  | null;
+  netWorth: number | null;
   stocks: number;
   reit: number;
   crypto: number;
@@ -38,7 +38,8 @@ export const useRetirementCalculator = (
   isMonthly: boolean,
   annualExpenses: number,
   withdrawalRate: number,
-  includeWithdrawals: boolean
+  includeWithdrawals: boolean,
+  taxRate: number // new prop
 ) => {
   const [projectionData, setProjectionData] = useState<ProjectionData[]>([]);
   const [assetGrowth, setAssetGrowth] = useState<AssetGrowth[]>([]);
@@ -56,7 +57,7 @@ export const useRetirementCalculator = (
   }, [
     initialNetWorth, monthlyContribution, years, stockAllocation, reitAllocation, cryptoAllocation, bondAllocation,
     realEstateAllocation, stockCAGR, reitCAGR, cryptoCAGR, bondCAGR, realEstateCAGR, annualInflationRate, initialDate,
-    currentDate, currentNetWorth, isMonthly, annualExpenses, withdrawalRate, includeWithdrawals
+    currentDate, currentNetWorth, isMonthly, annualExpenses, withdrawalRate, includeWithdrawals, taxRate // include taxRate in dependencies
   ]);
 
   const adjustForInflation = (value: number, months: number, annualInflationRate: number): number => {
@@ -67,8 +68,10 @@ export const useRetirementCalculator = (
     return isRetired ? 0 : monthlyInvestment * inflationAdjustments[i];
   };
 
-  const updateAssetValues = (value: number, allocation: number, CAGR: number, monthlyInvestment: number): number => {
-    return (value + monthlyInvestment * allocation / 100) * (1 + CAGR / 100 / 12);
+  const updateAssetValues = (value: number, allocation: number, CAGR: number, monthlyInvestment: number, applyTaxes: boolean, taxRate: number): number => {
+    const growth = value * (CAGR / 100 / 12);
+    const afterTaxGrowth = applyTaxes ? growth * (1 - taxRate / 100) : growth;
+    return (value + monthlyInvestment * allocation / 100 + afterTaxGrowth);
   };
 
   const calculateWithdrawals = (adjustedAnnualExpenses: number, assetValues: number[], projectedNetWorth: number): number[] => {
@@ -97,6 +100,7 @@ export const useRetirementCalculator = (
     let bondValue = projectedNetWorth * bondAllocation / 100;
     let realEstateValue = projectedNetWorth * realEstateAllocation / 100;
     const fireTarget = annualExpenses / (withdrawalRate / 100);
+    const fireTargetWithTaxes = fireTarget / (1 - taxRate / 100);
     let fireDateFound = false;
     let isRetired = false;
 
@@ -108,12 +112,13 @@ export const useRetirementCalculator = (
 
       if (i > 0) {
         const adjustedMonthlyInvestment = calculateAdjustedMonthlyInvestment(monthlyContribution, isRetired, inflationAdjustments, i);
+        const applyTaxes = isRetired && includeWithdrawals;
 
-        stockValue = updateAssetValues(stockValue, stockAllocation, stockCAGR, adjustedMonthlyInvestment);
-        reitValue = updateAssetValues(reitValue, reitAllocation, reitCAGR, adjustedMonthlyInvestment);
-        cryptoValue = updateAssetValues(cryptoValue, cryptoAllocation, cryptoCAGR, adjustedMonthlyInvestment);
-        bondValue = updateAssetValues(bondValue, bondAllocation, bondCAGR, adjustedMonthlyInvestment);
-        realEstateValue = updateAssetValues(realEstateValue, realEstateAllocation, realEstateCAGR, adjustedMonthlyInvestment);
+        stockValue = updateAssetValues(stockValue, stockAllocation, stockCAGR, adjustedMonthlyInvestment, applyTaxes, taxRate);
+        reitValue = updateAssetValues(reitValue, reitAllocation, reitCAGR, adjustedMonthlyInvestment, applyTaxes, taxRate);
+        cryptoValue = updateAssetValues(cryptoValue, cryptoAllocation, cryptoCAGR, adjustedMonthlyInvestment, applyTaxes, taxRate);
+        bondValue = updateAssetValues(bondValue, bondAllocation, bondCAGR, adjustedMonthlyInvestment, applyTaxes, taxRate);
+        realEstateValue = updateAssetValues(realEstateValue, realEstateAllocation, realEstateCAGR, adjustedMonthlyInvestment, applyTaxes, taxRate);
         projectedNetWorth = stockValue + reitValue + cryptoValue + bondValue + realEstateValue;
 
         if (isRetired && includeWithdrawals) {
@@ -140,7 +145,7 @@ export const useRetirementCalculator = (
 
         data.push(dataPoint);
 
-        if (!fireDateFound && projectedNetWorth * inflationAdjustments[i] >= fireTarget) {
+        if (!fireDateFound && projectedNetWorth * inflationAdjustments[i] >= fireTargetWithTaxes) {
           setFireDate(date.toDate());
           fireDateFound = true;
           isRetired = includeWithdrawals;

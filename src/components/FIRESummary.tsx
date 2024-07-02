@@ -12,6 +12,8 @@ interface FIRESummaryProps {
   fireDate: Date | null;
   currentAge: number;
   formatCurrency: (value: any) => string;
+  taxRate: number;
+  inflationRate: number;
 }
 
 const FIRESummary: React.FC<FIRESummaryProps> = ({
@@ -25,6 +27,8 @@ const FIRESummary: React.FC<FIRESummaryProps> = ({
   fireDate,
   currentAge,
   formatCurrency,
+  taxRate,
+  inflationRate,
 }) => {
   return (
     <div className="mt-8 p-4 bg-gray-700 rounded-lg shadow-lg">
@@ -33,7 +37,7 @@ const FIRESummary: React.FC<FIRESummaryProps> = ({
         Starting with <span className="text-yellow-400">{formatCurrency(initialNetWorth)}</span> and investing <span className="text-yellow-400">{formatCurrency(monthlyContribution)}</span> monthly,
         {fireDate ? (
           <>
-            you'll reach your F.I.R.E. goal in approximately <span className="text-yellow-400">{yearsToFire} years</span> with a net worth of <span className="text-yellow-400">{formatCurrency(netWorthAtFire)}</span>.
+            you'll reach your F.I.R.E. goal in approximately <span className="text-yellow-400">{Math.round(yearsToFire!)} years</span> with a net worth of <span className="text-yellow-400">{formatCurrency(netWorthAtFire)}</span>, also considering a <span className="text-yellow-400">tax rate of {taxRate}% </span> and <span className="text-yellow-400">inflation of {inflationRate}% yearly</span>.
           </>
         ) : (
           <>
@@ -47,7 +51,7 @@ const FIRESummary: React.FC<FIRESummaryProps> = ({
       </p>
       {fireDate && (
         <p>
-          Based on your current age of <span className="text-yellow-400">{currentAge}</span>, you are projected to reach your <span className="text-yellow-400">F.I.R.E.</span> date by <span className="text-yellow-400">{dayjs(fireDate).format('MMMM D, YYYY')}</span>, at which point you will be approximately <span className="text-yellow-400">{currentAge + yearsToFire!} years</span> old.
+          Based on your current age of <span className="text-yellow-400">{currentAge}</span>, you are projected to reach your <span className="text-yellow-400">F.I.R.E.</span> date by <span className="text-yellow-400">{dayjs(fireDate).format('MMMM D, YYYY')}</span>, at which point you will be approximately <span className="text-yellow-400">{Math.round(currentAge + yearsToFire!)} years</span> old.
         </p>
       )}
       <p className="text-gray-400 mt-4">
