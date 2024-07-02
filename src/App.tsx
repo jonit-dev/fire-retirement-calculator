@@ -232,6 +232,12 @@ const RetirementCalculator = () => {
           )}
         </div>
 
+        {allocationError && (
+          <div className="mb-4 p-4 bg-red-600 text-white border border-red-800 rounded">
+            {allocationError}
+          </div>
+        )}
+
         <FIRESummary
           initialNetWorth={initialNetWorth}
           monthlyContribution={monthlyContribution}
@@ -264,12 +270,6 @@ const RetirementCalculator = () => {
 
         {activeTab === 'inputs' && (
           <InputFields values={values} setValues={setValues} />
-        )}
-
-        {allocationError && (
-          <div className="mb-4 p-4 bg-red-600 text-white border border-red-800 rounded">
-            {allocationError}
-          </div>
         )}
       </div>
     </div>
