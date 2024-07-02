@@ -105,7 +105,7 @@ const RetirementCalculator = () => {
         </div>
       )}
 
- <FIRESummary
+      <FIRESummary
         initialNetWorth={initialNetWorth}
         monthlyContribution={monthlyContribution}
         years={years}
@@ -116,7 +116,7 @@ const RetirementCalculator = () => {
         fireDate={fireDate}
         currentAge={currentAge}
         formatCurrency={formatCurrency}
- />
+      />
 
 
       {allocationError && (
