@@ -1,0 +1,9 @@
+{
+  "type": "node",
+  "name": "Debug CRA Tests",
+  "request": "launch",
+  "program": "${workspaceFolder}/node_modules/react-scripts/scripts/test.js",
+  "args": ["--runInBand", "--env=jsdom"],
+  "console": "integratedTerminal",
+  "internalConsoleOptions": "neverOpen"
+}
