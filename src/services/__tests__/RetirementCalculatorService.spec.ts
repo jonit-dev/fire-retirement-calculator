@@ -2,9 +2,6 @@ import dayjs from 'dayjs';
 import { container } from 'tsyringe';
 import { RetirementCalculatorService } from '../RetirementCalculatorService';
 
-import utc from 'dayjs/plugin/utc';
-
-dayjs.extend(utc);
 describe('RetirementCalculatorService', () => {
   let service: RetirementCalculatorService;
 
@@ -77,8 +74,8 @@ describe('RetirementCalculatorService', () => {
 
   describe('calculateProjection', () => {
     it('should calculate projection correctly', () => {
-      const initialDate = dayjs.utc('2024-01-01').toDate();
-      const currentDate = dayjs.utc('2024-07-01').toDate();
+      const initialDate = dayjs('2024-01-01').toDate();
+      const currentDate = dayjs('2024-07-01').toDate();
       const result = service.calculateProjection(
         100000,
         1000,
@@ -110,7 +107,9 @@ describe('RetirementCalculatorService', () => {
       expect(result.assetGrowth.length).toBe(5);
 
       const firstDataPoint = result.data[0];
-      expect(firstDataPoint.date).toBe('2024-01-01');
+      expect(dayjs(firstDataPoint.date).format('YYYY-MM-DD')).toBe(
+        '2024-01-01'
+      );
       expect(firstDataPoint.netWorth).toBeCloseTo(100000, 2);
 
       const lastDataPoint = result.data[result.data.length - 1];
